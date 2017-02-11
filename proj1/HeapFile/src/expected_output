@@ -1,0 +1,181 @@
+
+Running Heap File tests...
+
+  Test 1: Insert and scan fixed-size records
+  - Create a heap file
+  - Add 2000 records to the file
+  - Scan the records just inserted
+  Test 1 completed successfully.
+
+  Test 2: Delete fixed-size records
+  - Open the same heap file as test 1
+  - Delete half the records
+  - Scan the remaining records
+  Test 2 completed successfully.
+
+  Test 3: Update fixed-size records
+  - Open the same heap file as tests 1 and 2
+  - Change the records
+  - Check that the updates are really there
+  Test 3 completed successfully.
+
+  Test 4: Insert and scan variable-length records
+  - Create a heap file
+  - Add variable-sized records
+ inserting record 0
+ inserting record 1
+ inserting record 2
+ inserting record 3
+ inserting record 4
+ inserting record 5
+ inserting record 6
+ inserting record 7
+ inserting record 8
+ inserting record 9
+ inserting record 10
+ inserting record 11
+ inserting record 12
+ inserting record 13
+ inserting record 14
+ inserting record 15
+ inserting record 16
+ inserting record 17
+ inserting record 18
+ inserting record 19
+ inserting record 20
+ inserting record 21
+ inserting record 22
+ inserting record 23
+ inserting record 24
+ inserting record 25
+ inserting record 26
+ inserting record 27
+ inserting record 28
+ inserting record 29
+ inserting record 30
+ inserting record 31
+ inserting record 32
+ inserting record 33
+ inserting record 34
+ inserting record 35
+ inserting record 36
+ inserting record 37
+ inserting record 38
+ inserting record 39
+ inserting record 40
+ inserting record 41
+ inserting record 42
+ inserting record 43
+ inserting record 44
+ inserting record 45
+ inserting record 46
+ inserting record 47
+ inserting record 48
+ inserting record 49
+ inserting record 50
+ inserting record 51
+ inserting record 52
+ inserting record 53
+ inserting record 54
+ inserting record 55
+ inserting record 56
+ inserting record 57
+ inserting record 58
+ inserting record 59
+ inserting record 60
+ inserting record 61
+ inserting record 62
+ inserting record 63
+ inserting record 64
+ inserting record 65
+ inserting record 66
+ inserting record 67
+ inserting record 68
+ inserting record 69
+  - Check that all the records were inserted
+ seen record 70
+ seen record 69
+ seen record 68
+ seen record 67
+ seen record 66
+ seen record 65
+ seen record 64
+ seen record 63
+ seen record 62
+ seen record 61
+ seen record 60
+ seen record 59
+ seen record 58
+ seen record 57
+ seen record 56
+ seen record 55
+ seen record 54
+ seen record 53
+ seen record 52
+ seen record 51
+ seen record 50
+ seen record 49
+ seen record 48
+ seen record 47
+ seen record 46
+ seen record 45
+ seen record 44
+ seen record 43
+ seen record 42
+ seen record 41
+ seen record 40
+ seen record 39
+ seen record 38
+ seen record 37
+ seen record 36
+ seen record 35
+ seen record 34
+ seen record 33
+ seen record 32
+ seen record 31
+ seen record 30
+ seen record 29
+ seen record 28
+ seen record 27
+ seen record 26
+ seen record 25
+ seen record 24
+ seen record 23
+ seen record 22
+ seen record 21
+ seen record 20
+ seen record 19
+ seen record 18
+ seen record 17
+ seen record 16
+ seen record 15
+ seen record 14
+ seen record 13
+ seen record 12
+ seen record 11
+ seen record 10
+ seen record 9
+ seen record 8
+ seen record 7
+ seen record 6
+ seen record 5
+ seen record 4
+ seen record 3
+ seen record 2
+ seen record 1
+  Test 4 completed successfully.
+
+  Test 5: Test some error conditions
+  - Try to change the size of a record
+    --> Failed as expected
+    --> Failed as expected
+  - Try to insert a record that's too long
+    --> Failed as expected
+  Test 5 completed successfully.
+
+ Test 6: Test delete file
+  Try to delete the heap file
+ Test 6 completed successfully
+
+...Heap File tests completed successfully.
+

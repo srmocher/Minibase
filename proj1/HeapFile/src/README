@@ -1,0 +1,29 @@
+
+Date: 02/14/14
+Writer: Young-K. Suh
+
+*** Some important files you should know ***
+
+Makefile: a sample makefile to compile your project; this will generate an executable, named 'heaptest'. 
+
+expected_output: an expected output from a correct implementation when heaptest is successfully finished
+
+../include/scan.h: specifications for the Scan class.
+	    ( Note: we do not expect you to change this file. )
+
+../include/heapfile.h: specifications for the HeapFile class.
+	    ( Note: we do not expect you to change this file. )
+
+../include/hfpage.h: specifications for the HFPage class.
+	    ( Note: we do not expect you to change this file. )
+
+heapfile.C: the skeleton of the implementation of the HeapFile class.
+	    ( Note: You should implement this. )
+
+scan.C: the skeleton of the implementation of the Scan class.
+	    ( Note: You should implement this. )
+
+hfpage.C: the skeleton of the implementation of the HFPage class.
+	    ( Note: You may want to replace this with your hfpage.C in HFPage.)
+
+main.C, test_driver.C, heap_driver.C: the testing programs.

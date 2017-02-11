@@ -1,0 +1,18 @@
+
+Date: 02/14/14
+Writer: Young-K. Suh
+
+*** Some important files you should know ***
+
+Makefile: a sample makefile to compile your project; this will generate an executable, named 'hfpage'.
+
+expected_output: an expected output from a correct implementation when hfpage is successfully finished
+
+../include/hfpage.h: specifications for the HFPage class.
+	  (Note: we do not expect you to change this file.)
+
+hfpage.C: the skeleton of the implementation of the HFPage class.
+	(Note: You should implement this. )
+
+main.C  test_driver.C hfp_driver.C: testing programs
+
