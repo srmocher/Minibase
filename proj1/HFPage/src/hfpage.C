@@ -12,6 +12,14 @@
 
 void HFPage::init(PageId pageNo)
 {
+    this->curPage = pageNo;
+    this->nextPage = INVALID_PAGE;
+    this->prevPage = INVALID_PAGE;
+    this->slotCnt = 0;
+    this->slot[0].length = EMPTY_SLOT;
+    this->slot[1].offset = -1;
+    this->freeSpace = MAX_SPACE - DPFIXED;
+    this->usedPtr = MAX_SPACE - DPFIXED;
   // fill in the body
 }
 
@@ -35,28 +43,25 @@ void HFPage::dumpPage()
 // **********************************************************
 PageId HFPage::getPrevPage()
 {
-    // fill in the body
-    return 0;
+    return this->prevPage;
 }
 
 // **********************************************************
 void HFPage::setPrevPage(PageId pageNo)
 {
-
-    // fill in the body
+    this->prevPage = pageNo;
 }
 
 // **********************************************************
 PageId HFPage::getNextPage()
 {
-    // fill in the body
-    return 0;
+   return this->nextPage;
 }
 
 // **********************************************************
 void HFPage::setNextPage(PageId pageNo)
 {
-  // fill in the body
+  this->nextPage = pageNo;
 }
 
 // **********************************************************
@@ -83,8 +88,27 @@ Status HFPage::deleteRecord(const RID& rid)
 // returns RID of first record on page
 Status HFPage::firstRecord(RID& firstRid)
 {
-    // fill in the body
-    return OK;
+    if(this->usedPtr == MAX_SPACE - DPFIXED)
+    {
+        return DONE;
+    }
+    firstRid.pageNo = this->curPage;
+    slot_t currSlot = this->slot[0];
+    int j=1;
+    while(j<=this->slotCnt)
+    {
+        if(currSlot.offset == this->usedPtr)
+        {
+            firstRid.slotNo = j;
+            return  OK;
+        }
+        short *temp = static_cast<short *>(&currSlot);
+        temp = temp + sizeof(slot_t);
+        currSlot.offset = *temp;
+        currSlot.length = *(temp+sizeof(short));
+        j++;
+    }
+    return DONE;
 }
 
 // **********************************************************
@@ -93,7 +117,45 @@ Status HFPage::firstRecord(RID& firstRid)
 Status HFPage::nextRecord (RID curRid, RID& nextRid)
 {
     // fill in the body
+    if(usedPtr == MAX_SPACE - DPFIXED)
+    {
+        return  FAIL;
+    }
+    int curSlot = curRid.slotNo;
+    int currOffset;
+    slot_t temp = this->slot[0];
+    int j=1;
 
+    while(j<=this->slotCnt)
+    {
+        if(j==curSlot)
+        {
+            currOffset = temp.offset;
+            break;
+        }
+        short *currSlotPtr= static_cast<short *>(&temp);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        temp.offset = *currSlotPtr;
+        temp.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+
+    j=1;
+    temp = this->slot[0];
+    while(j<=this->slotCnt)
+    {
+        int sum = temp.offset + temp.length;
+        if(sum==currOffset)
+        {
+            nextRid.pageNo = this->curPage;
+            nextRid.slotNo = j;
+        }
+        short *currSlotPtr= static_cast<short *>(&temp);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        temp.offset = *currSlotPtr;
+        temp.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
     return OK;
 }
 
@@ -101,6 +163,33 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
 // returns length and copies out record with RID rid
 Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 {
+    if(this->slotCnt)
+        return FAIL;
+    int slotNo = rid.slotNo;
+    int j=1;
+    slot_t currSlot = this->slot[0];
+    int offset=-1;
+    while(j<=this->slotCnt)
+    {
+        if(j==slotNo)
+        {
+            offset = currSlot.offset;
+            recLen = currSlot.length;
+            break;
+        }
+        short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    if(offset == -1)
+    {
+        return DONE;
+    }
+    for(int i=0;i<recLen;i++){
+        recPtr[i]=data[offset+i];
+    }
     // fill in the body
     return OK;
 }
@@ -113,6 +202,31 @@ Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
 Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 {
     // fill in the body
+    if(this->slotCnt==0)
+        return FAIL;
+    int slotNo = rid.slotNo;
+    int j=1;
+    slot_t currSlot = this->slot[0];
+    int offset=-1;
+    while(j<=this->slotCnt)
+    {
+        if(j==slotNo)
+        {
+            offset = currSlot.offset;
+            recLen = currSlot.length;
+            break;
+        }
+        short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    if(offset == -1)
+    {
+        return DONE;
+    }
+    recPtr = (char *)data[offset];
     return OK;
 }
 
@@ -121,6 +235,7 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 int HFPage::available_space(void)
 {
     // fill in the body
+    slot_t currSlot = this->slot[0];
     return 0;
 }
 
