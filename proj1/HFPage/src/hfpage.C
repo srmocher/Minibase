@@ -287,7 +287,24 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
 int HFPage::available_space(void)
 {
     // fill in the body
+<<<<<<< HEAD
     return this->freeSpace;
+=======
+    slot_t currSlot = this->slot[0];
+    int j=1;
+    int totalLen = 0;
+    while(j<=this->slotCnt)
+    {
+    	totalLen += currSlot.length;
+    	short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    int remLen = (MAX_SPACE - DPFIXED) - totalLen;
+    return totalLen;
+>>>>>>> 4a7ef392c1a7851c8204beeb465487d4762a211a
 }
 
 // **********************************************************
@@ -296,8 +313,30 @@ int HFPage::available_space(void)
 bool HFPage::empty(void)
 {
     // fill in the body
+<<<<<<< HEAD
     if(freeSpace == MAX_SPACE - DPFIXED)
         return true;
+=======
+    int j =1;
+    slot_t currSlot = this->slot[0];
+    while(j<=this->slotCnt)
+    {
+    	if(!(currSlot.offset == -1))
+    	{
+    		return false;
+    	}
+    	short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    return true; 
+    if(this->usedPtr == MAX_SPACE - DPFIXED)
+    {
+    	return true;
+    }
+>>>>>>> 4a7ef392c1a7851c8204beeb465487d4762a211a
     return false;
 }
 
