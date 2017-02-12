@@ -236,7 +236,19 @@ int HFPage::available_space(void)
 {
     // fill in the body
     slot_t currSlot = this->slot[0];
-    return 0;
+    int j=1;
+    int totalLen = 0;
+    while(j<=this->slotCnt)
+    {
+    	totalLen += currSlot.length;
+    	short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    int remLen = (MAX_SPACE - DPFIXED) - totalLen;
+    return totalLen;
 }
 
 // **********************************************************
@@ -245,7 +257,26 @@ int HFPage::available_space(void)
 bool HFPage::empty(void)
 {
     // fill in the body
-    return true;
+    int j =1;
+    slot_t currSlot = this->slot[0];
+    while(j<=this->slotCnt)
+    {
+    	if(!(currSlot.offset == -1))
+    	{
+    		return false;
+    	}
+    	short *currSlotPtr= static_cast<short *>(&currSlot);
+        currSlotPtr = currSlotPtr + sizeof(slot_t);
+        currSlot.offset = *currSlotPtr;
+        currSlot.length = *(currSlotPtr+sizeof(short));
+        j++;
+    }
+    return true; 
+    if(this->usedPtr == MAX_SPACE - DPFIXED)
+    {
+    	return true;
+    }
+    return false;
 }
 
 
