@@ -125,6 +125,7 @@ Status HFPage::deleteRecord(const RID& rid)
         return  FAIL;
     }
     slot_t *current = this->slot;
+    slot_t *temp;
     int j=1;
     while(j < this->slotCnt)
     {
@@ -134,12 +135,28 @@ Status HFPage::deleteRecord(const RID& rid)
         current = current + sizeof(slot_t);
         j++;
     }
+    temp->offset = current->offset;
+    temp->length = current->length;
     current->offset = -1;
     this->freeSpace = this->freeSpace + current->length;
     current->length = EMPTY_SLOT;
+    current = this->slot;
+    j=1;
+    while(j <= this->slotCnt)
+    {
+        if(current->offset < temp->offset)
+        {
+        	memmove(data[current+temp->length], data[current], temp->length);
+        	current->offset = current->offset + temp->length;
+        }
+        current = current + sizeof(slot_t);
+        j++;
+    }
+    
     if(slot==this->slotCnt)
     {
         //last slot record to be deleted..and compaction to be implemented
+        
     }
 
     return OK;
