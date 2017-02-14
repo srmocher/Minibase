@@ -98,14 +98,16 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
         int minOffset=current->offset;
         while(j < this->slotCnt)
         {
-            if(current->offset<minOffset && current->offset!=0)
+            if(current->offset<minOffset && current->offset!=-1 )
                 minOffset = current->offset;
 
-            current = current + sizeof(slot_t);
+           current = (slot_t *)(data+j*sizeof(slot_t));
             j++;
         }
-         current->offset = minOffset - recLen;
 
+
+         current->offset = minOffset - recLen;
+        int offset1 = current->offset;
         if(j==this->slotCnt) {
             this->slotCnt += 1;
            // current = this->slot + (j-1)*sizeof(slot_t);
@@ -113,9 +115,9 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
             rid.slotNo = j;
         }
         current->length = recLen;
+        cout<<"Offset 1:"<<offset1<<endl;
 
-
-      //  memcpy(data+current->offset,recPtr,recLen);
+        memmove(data+offset1,recPtr,recLen);
 
 
     }
@@ -149,20 +151,20 @@ Status HFPage::deleteRecord(const RID& rid)
         if(j==slot)
             break;
 
-        current = current + sizeof(slot_t);
+        current = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
 
 
     int deletedOffset = current->offset;
     int deletedLength = current->length;
-
+    current->offset=-1;
     this->freeSpace = this->freeSpace + deletedLength;
 
 
     while(status==OK){
         int nextSlot = nextRecord.slotNo;
-        current = this->slot + nextSlot*sizeof(slot_t);
+        current = (slot_t *)(data +(nextSlot-1)*sizeof(slot_t));
         int offset = current->offset;
 
         memmove(data+offset+deletedLength,data+offset,current->length);
@@ -183,7 +185,7 @@ Status HFPage::deleteRecord(const RID& rid)
 
         if(current->offset > maxOffset)
             maxOffset = current->offset;
-        current = current + sizeof(slot_t);
+        current = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
     if(maxOffset!=-1)
@@ -223,7 +225,7 @@ Status HFPage::firstRecord(RID& firstRid)
             firstRid.slotNo = j;
             return  OK;
         }
-        currSlot = currSlot + sizeof(slot_t);
+        currSlot = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
     return DONE;
@@ -258,7 +260,7 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
             currOffset = temp->offset;
             break;
         }
-        temp = temp + sizeof(slot_t);
+        temp = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
 
@@ -276,7 +278,7 @@ Status HFPage::nextRecord (RID curRid, RID& nextRid)
             recordFound = true;
             break;
         }
-        temp = temp + sizeof(slot_t);
+        temp = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
     if(!recordFound)
@@ -302,7 +304,7 @@ Status HFPage::getRecord(RID rid, char* recPtr, int& recLen)
             recLen = currSlot->length;
             break;
         }
-        currSlot = currSlot + sizeof(slot_t);
+        currSlot = (slot_t *)(data+j*sizeof(slot_t));
         j++;
     }
     if(offset == -1)
@@ -328,28 +330,58 @@ Status HFPage::returnRecord(RID rid, char*& recPtr, int& recLen)
         return FAIL;
 
 
-    slot_t *currSlot = this->slot;
-    int j=0;
-    while(j < this->slotCnt)
+    int slotNo = rid.slotNo;
+    if(slotNo==0)
     {
-        if(j==rid.slotNo)
-        {
-            recPtr = data+currSlot->offset;
-            recLen = currSlot->length;
-            return OK;
-        }
-        currSlot = currSlot + sizeof(slot_t);
-        j++;
+        int offset = this->slot->offset;
+        int length = this->slot->length;
+        recPtr = data + offset;
+        recLen = length;
+    }
+    else{
+        slot_t *slot = (slot_t *)(data+(slotNo-1)*sizeof(slot_t));
+        int offset = slot->offset;
+        int length = slot->length;
+        recPtr = data + offset;
+        recLen = length;
     }
 
-    return DONE;
+
+    return OK;
 }
 
 // **********************************************************
 // Returns the amount of available space on the heap file page
 int HFPage::available_space(void)
 {
-    return freeSpace;
+    if(this->slotCnt==1)
+    {
+        if(this->slot->offset<=0)
+        {
+            return MAX_SPACE - DPFIXED;
+        }
+        else
+        {
+            return freeSpace - sizeof(slot_t);
+        }
+    }
+    else
+    {
+        int emptySlots = 0;
+        int j=0;
+        slot_t *curr = this->slot;
+        while(j<this->slotCnt-1)
+        {
+            if(curr->offset==-1)
+                emptySlots++;
+            curr = (slot_t *)(data + j*sizeof(slot_t));
+            j++;
+        }
+        if(emptySlots>0)
+            return this->freeSpace + emptySlots*sizeof(slot_t);
+        else
+            return this->freeSpace - sizeof(slot_t);
+    }
 }
 
 // **********************************************************
