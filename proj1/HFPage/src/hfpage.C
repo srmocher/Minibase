@@ -88,7 +88,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
 
         this->usedPtr = offset;
         this->freeSpace = this->freeSpace - recLen;
-        memcpy(data+offset,recPtr,recLen);
+        memmove(data+offset,recPtr,recLen);
         return OK;
     }
     else
@@ -105,7 +105,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
             j++;
         }
          current->offset = minOffset - recLen;
-
+			int offset1 = current->offset;
         if(j==this->slotCnt) {
             this->slotCnt += 1;
            // current = this->slot + (j-1)*sizeof(slot_t);
@@ -115,7 +115,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
         current->length = recLen;
 
 
-      //  memcpy(data+current->offset,recPtr,recLen);
+        memmove(data+offset1,recPtr,recLen);
 
 
     }
