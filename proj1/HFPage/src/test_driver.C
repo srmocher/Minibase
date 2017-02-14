@@ -185,6 +185,6 @@ Status TestDriver::runAllTests()
     runTest( answer, &TestDriver::test3 );
     runTest( answer, &TestDriver::test4 );
     runTest( answer, &TestDriver::test5 );
-    runTest( answer, &TestDriver::test6 );
+   runTest( answer, &TestDriver::test6 );
     return answer;
 }

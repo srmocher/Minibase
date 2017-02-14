@@ -45,7 +45,9 @@ class HFPage {
 
     slot_t    slot[1];     // first element of slot array.
 
-    char      data[MAX_SPACE - DPFIXED]; 
+    char      data[MAX_SPACE - DPFIXED];
+    void compactData();
+    void compactSlots();
 
   public:
     void init(PageId pageNo);   // initialize a new page
