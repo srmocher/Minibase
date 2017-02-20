@@ -1,4 +1,5 @@
 #include "heapfile.h"
+#include <vector>
 
 // ******************************************************
 // Error messages for the heapfile layer
@@ -17,11 +18,17 @@ static const char *hfErrMsgs[] = {
 
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
+vector<HFPage> directoryPages;
+
+
 // ********************************************************
 // Constructor
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
-   
+    this->fileName = new char[strlen(name)];
+    for(auto i=0;i<strlen(name);i++)
+        this->fileName[i]=name[i];
+    this->file_deleted = 0;
     // fill in the body
     returnStatus = OK;
    
@@ -40,7 +47,32 @@ HeapFile::~HeapFile()
 int HeapFile::getRecCnt()
 {
    // fill in the body
-   return OK;
+    int count =0;
+    for(int i=0;i<directoryPages.size();i++)
+    {
+        HFPage hfpage = directoryPages[i];
+        Page *page = (Page *)&hfpage;
+        Status status = MINIBASE_BM->pinPage(hfpage.page_no(),page,0,this->fileName);
+        if(status!=OK)
+            return  status;
+        RID rid,tempRid;
+        status = hfpage.firstRecord(rid);
+        DataPageInfo *info;
+        char *record;
+        int recLen;
+        while(status==OK)
+        {
+            hfpage.getRecord(rid,record,recLen);
+            info = (DataPageInfo *)record;
+            count += info->recct;
+            tempRid=rid;
+            status = hfpage.nextRecord(tempRid,rid);
+        }
+        status = MINIBASE_BM->unpinPage(hfpage.page_no(),0,this->fileName);
+        if(status!=OK)
+            return status;
+    }
+   return count;
 }
 
 // *****************************
@@ -48,8 +80,67 @@ int HeapFile::getRecCnt()
 Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
 {
     // fill in the body
-    return OK;
-} 
+    for(int i=0;i<directoryPages.size();i++)
+    {
+        HFPage hfpage = directoryPages[i];
+        Page *page = (Page *)&hfpage;
+        Status status = MINIBASE_BM->pinPage(hfpage.page_no(),page,hfpage.empty(),this->fileName);
+        if(status!=OK)
+        {
+            return status;
+        }
+        RID rid;
+        status = hfpage.firstRecord(rid);
+        if(status!=OK)
+              return status;
+        char *record;
+        int len;
+        while(status==OK)
+        {
+             hfpage.getRecord(rid,record,len);
+             DataPageInfo *info = (DataPageInfo *)record;
+             if(info->availspace>=recLen)
+             {
+                 outRid.pageNo = info->pageId;
+                 Page *dataPage;
+                 MINIBASE_BM->pinPage(info->pageId,dataPage,0,this->fileName);
+                 HFPage *hfpage = (HFPage *)dataPage;
+                 Status insertStatus = hfpage->insertRecord(recPtr,recLen,outRid);
+                 info->availspace = hfpage->available_space();
+                 info->recct+=1;
+                 MINIBASE_BM->unpinPage(info->pageId,1,this->fileName);
+                 return insertStatus;
+             }
+        }
+
+
+    }
+    DataPageInfo *info;
+    Page *page,*dirPage;
+    Status newStatus = newDataPage(info);
+
+    if(newStatus!=OK)
+        return newStatus;
+    info->availspace = info->availspace-recLen;
+    PageId dirId,dataId;
+    RID dirRid;
+    Status allocStatus = allocateDirSpace(info,dirId,dirRid);
+    if(allocStatus!=OK)
+        return allocStatus;
+
+    MINIBASE_BM->pinPage(info->pageId,page,1,this->fileName);
+    HFPage *hfpage = (HFPage *)page;
+    Status insertStatus = hfpage->insertRecord(recPtr,recLen,outRid);
+    MINIBASE_BM->unpinPage(info->pageId,1,this->fileName);
+    if(insertStatus==OK)
+    {
+        info->recct += 1;
+        return OK;
+    }
+    return insertStatus;
+}
+
+
 
 
 // ***********************
@@ -57,13 +148,15 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
 Status HeapFile::deleteRecord (const RID& rid)
 {
   // fill in the body
-  return OK;
+
 }
 
 // *******************************************
 // updates the specified record in the heapfile.
 Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
 {
+
+
   // fill in the body
   return OK;
 }
@@ -97,8 +190,73 @@ Status HeapFile::deleteFile()
 // (Allocate pages in the db file via buffer manager)
 Status HeapFile::newDataPage(DataPageInfo *dpinfop)
 {
-    // fill in the body
-    return OK;
+//    if(directoryPages.size()==0)
+//    {
+//        HFPage headerPage,dataPage;
+//        Page *page,*dpage;
+//        int pageId,dpageId;
+//        MINIBASE_BM->newPage(pageId,page,1);
+//        headerPage.init(pageId);
+//        MINIBASE_BM->newPage(dpageId,dpage,1);
+//        dataPage.init(dpageId);
+//        dpinfop = new DataPageInfo();
+//        dpinfop->availspace = dataPage.available_space();
+//        dpinfop->recct = 0;
+//        dpinfop->pageId = dpageId;
+//        RID rid;
+//      //  Status status = headerPage.insertRecord((char *)dpinfop,sizeof(DataPageInfo),rid);
+//        if(status == OK)
+//        {
+//            //directoryPages.push_back(headerPage);
+//            return OK;
+//        }
+//    }
+//    else
+//    {
+//        int spaceRequired = sizeof(DataPageInfo);
+//        HFPage dataPage;
+//        int dataPageId,dpId;
+//        Page *dataPageVar,*dirVar;
+//        RID rid;
+//        for(int i=0;i<directoryPages.size();i++)
+//        {
+//            HFPage dirPage = directoryPages[i];
+//            if(dirPage.available_space()>=spaceRequired)
+//            {
+//                dpinfop = new DataPageInfo();
+//                MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
+//                dataPage.init(dataPageId);
+//                dpinfop->availspace = dataPage.available_space();
+//                dpinfop->pageId = dataPageId;
+//                dpinfop->recct = 0;
+//                Status status = dirPage.insertRecord((char *)dpinfop,spaceRequired,rid);
+//                if(status == OK)
+//                {
+//                    return OK;
+//                }
+//            }
+//        }
+        //HFPage dirPage;
+      //  MINIBASE_BM->newPage(dpId,dirVar,1);
+      //  dirPage.init(dpId);
+    int dataPageId;
+    Page *dataPageVar;
+    HFPage dataPage;
+        MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
+        dataPage.init(dataPageId);
+        dpinfop = new DataPageInfo();
+        dpinfop->availspace = dataPage.available_space();
+        dpinfop->pageId = dataPageId;
+        dpinfop->recct = 0;
+        return OK;
+       // Status status = dirPage.insertRecord((char *)dpinfop,spaceRequired,rid);
+//        if(status ==OK)
+//        {
+//            directoryPages.push_back(dirPage);
+//            return OK;
+//        }
+
+    
 }
 
 // ************************************************************************
@@ -114,19 +272,86 @@ Status HeapFile::findDataPage(const RID& rid,
                     PageId &rpDataPageId,HFPage *&rpdatapage,
                     RID &rpDataPageRid)
 {
+    rpdirpage = NULL;
+    rpdatapage = NULL;
     // fill in the body
-    return OK;
+    for(int i=0;i<directoryPages.size();i++)
+    {
+        HFPage p = directoryPages[i];
+        int pageNumber = p.page_no();
+        RID dirEntryId;
+        Page *page,*dp;
+        Status status = p.firstRecord(dirEntryId);
+        while(status==OK)
+        {
+            DataPageInfo *info;
+            char *record;
+            int val;
+            p.getRecord(dirEntryId,record,val);
+            info = (DataPageInfo *)record;
+            if(info->pageId==rid.pageNo)
+            {
+                MINIBASE_BM->pinPage(pageNumber,page,0,this->fileName);
+                MINIBASE_BM->pinPage(rid.pageNo,dp,0,this->fileName);
+                rpdatapage = (HFPage *)dp;
+                rpdirpage = (HFPage *)page;
+                rpDirPageId = pageNumber;
+                rpDataPageId = rid.pageNo;
+                rpDataPageRid = rid;
+                return OK;
+            }
+            RID currId = dirEntryId;
+            status = p.nextRecord(currId,dirEntryId);
+        }
+
+    }
+
+    return DONE;
 }
 
 // *********************************************************************
 // Allocate directory space for a heap file page 
 
-Status allocateDirSpace(struct DataPageInfo * dpinfop,
+Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,
                             PageId &allocDirPageId,
                             RID &allocDataPageRid)
 {
-    // fill in the body
-    return OK;
+    RID rid;
+    int pageId;
+    Page *pg;
+
+    //check existing pages
+    for(int i=0;i<directoryPages.size();i++)
+    {
+        HFPage page = directoryPages[i];
+
+        if(page.available_space()>=sizeof(DataPageInfo))
+        {
+            pg = (Page *)&page;
+            allocDirPageId = page.page_no();
+            MINIBASE_BM->pinPage(allocDirPageId,pg,0,this->fileName);
+            Status status = page.insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
+            MINIBASE_BM->unpinPage(allocDirPageId,1,this->fileName);
+            if(status==OK)
+            {
+                return OK;
+            }
+        }
+    }
+
+    //no space, so create new directory page
+    HFPage dirPage;
+
+    MINIBASE_BM->newPage(pageId,pg,1);
+    dirPage.init(pageId);
+    allocDirPageId = dirPage.page_no();
+ //   pg = (Page *)&dirPage;
+   // MINIBASE_BM->pinPage(allocDirPageId,pg);
+
+    Status status = dirPage.insertRecord((char *)dpinfop,sizeof(DataPageInfo),allocDataPageRid);
+    MINIBASE_BM->unpinPage(allocDirPageId,1,this->fileName);
+
+    return status;
 }
 
 // *******************************************
