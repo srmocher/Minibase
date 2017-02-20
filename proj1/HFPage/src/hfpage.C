@@ -104,15 +104,28 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
            current = (slot_t *)(data+j*sizeof(slot_t));
             j++;
         }
+        slot_t *current = this->slot;
+        j=0;
+        while(j<= this->slotCnt)
+        {
+            if(current->offset == -1)
+            {
+                break;
+            }
+            current = (slot_t *)(data+j*sizeof(slot_t));
+            j++;
+        }
 
-
-         current->offset = minOffset - recLen;
+        current->offset = minOffset - recLen;
         int offset1 = current->offset;
         if(j>this->slotCnt) {
             this->slotCnt += 1;
            // current = this->slot + (j-1)*sizeof(slot_t);
             this->freeSpace = this->freeSpace - recLen - sizeof(slot_t);
             rid.slotNo = j;
+        }
+        else{
+            this->freeSpace = this->freeSpace - recLen;
         }
         current->length = recLen;
       //  cout<<"Offset 1:"<<offset1<<endl;
@@ -172,9 +185,6 @@ Status HFPage::deleteRecord(const RID& rid)
         status = this->nextRecord(currRecord,nextRecord);
         current->offset = offset+deletedLength;
 
-     //   deletedLength = current->length;
-      //  deletedOffset = offset;
-
     }
 
     j=0;
@@ -199,9 +209,11 @@ Status HFPage::deleteRecord(const RID& rid)
         this->slot->length = MAX_SPACE - DPFIXED - maxOffset;
     }
 
-    if(slot==this->slotCnt)
+    if(slot==this->slotCnt-1)
     {
         //last slot record to be deleted..and compaction to be implemented
+        this->slotCnt = this->slotCnt-1;
+        this->freeSpace = this->freeSpace + sizeof(slot_t);
         
     }
     return OK;
