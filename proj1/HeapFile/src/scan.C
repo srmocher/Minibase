@@ -18,6 +18,7 @@
 Scan::Scan (HeapFile *hf, Status& status)
 {
   // put your code here
+  init(hf);
   status = OK;
 }
 
@@ -42,6 +43,25 @@ Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
 Status Scan::init(HeapFile *hf)
 {
   // put your code here
+  auto dirPages = hf->directoryPages;
+  this->dirPage = dirPages[0];
+  Page *page = (Page *)this->dirPage;
+  MINIBASE_BM->pinPage(this->dirPage->page_no(),page,0,hf->fileName);
+  RID firstdirRID;
+  this->dirPage->firstRecord(firstdirRID);
+  DataPageInfo *info;
+  char *record;
+  int recLen;
+  this->dirPage->returnRecord(firstdirRID,record,recLen);
+  info = (DataPageInfo *)record;
+  this->dataPageId =info->pageId;
+  Page *dataPage;
+    MINIBASE_BM->pinPage(info->pageId,dataPage,0,hf->fileName);
+    this->dataPage = (HFPage *)dataPage;
+   this->dataPage->firstRecord(this->dataPageRid);
+    this->scanIsDone = 0;
+    RID temp;
+    this->nxtUserStatus = this->dataPage->nextRecord(this->dataPageRid,temp);
   return OK;
 }
 

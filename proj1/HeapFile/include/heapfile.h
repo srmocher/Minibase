@@ -7,6 +7,7 @@
 #include "scan.h"
 #include "buf.h"
 #include "db.h"
+#include <vector>
 #include "new_error.h"
 
 //  This heapfile implementation is directory-based. We maintain a
@@ -84,6 +85,7 @@ class HeapFile {
     // delete the file from the database
     Status deleteFile();
 
+    vector<HFPage*> directoryPages;
 
   private:
     friend class Scan;
@@ -91,6 +93,7 @@ class HeapFile {
     PageId      firstDirPageId;  // page number of header page
     int         file_deleted;	 // flag for whether file is deleted (initialized to be false in constructor)
     char       *fileName;	 // heapfile name
+
 
     // get new data pages through buffer manager
     // (dpinfop stores the information of allocated new data pages)
