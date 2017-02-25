@@ -16,6 +16,8 @@ static const char *hfErrMsgs[] = {
     "file has already been deleted",
 };
 
+vector<HFPage*> directoryPages;
+string FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 
 
@@ -31,6 +33,7 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     for(auto i=0;i<strlen(name);i++)
         this->fileName[i]=name[i];
     this->file_deleted = 0;
+    FileName = name;
     // fill in the body
     returnStatus = OK;
    
@@ -67,6 +70,7 @@ int HeapFile::getRecCnt()
             hfpage->returnRecord(rid,record,recLen);
             info = (DataPageInfo *)record;
             count += info->recct;
+
             tempRid=rid;
             status = hfpage->nextRecord(tempRid,rid);
         }
@@ -74,7 +78,7 @@ int HeapFile::getRecCnt()
         if(status!=OK)
             return status;
     }
-   return count;
+   return count+1;
 }
 
 // *****************************
@@ -110,7 +114,10 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
                 Status insertStatus = hfdatapage->insertRecord(recPtr, recLen, outRid);
                 info->availspace = hfdatapage->available_space();
                 info->recct += 1;
-
+                recCount+=1;
+                if(recCount>1988)  {
+                    cout<<recCount<<endl;
+                    cout<<info->recct<<endl; }
                 pinStatus = MINIBASE_BM->unpinPage(info->pageId, DIRTY, this->fileName);
                 if (pinStatus != OK)
                     return pinStatus;
@@ -141,6 +148,10 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
         return newStatus;
     info->availspace = info->availspace-recLen;
     info->recct += 1;
+    recCount+=1;
+ //   if(recCount>1988) {
+       // cout<<recCount<<endl;
+ //   cout<<info->recct<<endl;  }
     PageId dirId,dataId;
     RID dirRid;
    // Status unpinStatus = MINIBASE_BM->unpinPage(info->pageId,1,this->fileName);
@@ -163,10 +174,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
 
         return unPinStatus;
     }
-    int num = MINIBASE_BM->getNumUnpinnedBuffers();
-    int num2 = MINIBASE_BM->getNumBuffers();
-   // recCount++;
-   // cout<<"New page Record count is "<<recCount<<endl;
+   // cout<<getRecCnt()<<endl;
     return insertStatus;
 }
 
@@ -312,10 +320,10 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
 // initiate a sequential scan
 Scan *HeapFile::openScan(Status& status)
 {
-    Scan scan(this,status);
+    Scan *scan = new Scan(this,status);
 
-  // fill in the body 
-  return NULL;
+
+  return scan;
 }
 
 // ****************************************************

@@ -85,7 +85,7 @@ class HeapFile {
     // delete the file from the database
     Status deleteFile();
 
-    vector<HFPage*> directoryPages;
+
 
   private:
     friend class Scan;
