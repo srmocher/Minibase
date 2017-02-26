@@ -16,6 +16,13 @@ static const char *hfErrMsgs[] = {
     "file has already been deleted",
 };
 
+typedef struct{
+    string fileName;
+    vector<HFPage*> pages;
+}directory;
+
+vector<directory> dirs;
+
 vector<HFPage*> directoryPages;
 string FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
@@ -33,6 +40,27 @@ HeapFile::HeapFile( const char *name, Status& returnStatus )
     for(auto i=0;i<strlen(name);i++)
         this->fileName[i]=name[i];
     this->file_deleted = 0;
+    int i=0;
+    for(i=0;i<dirs.size();i++){
+        if(strcmp(dirs[i].fileName.c_str(),name)==0)
+        {
+            break;
+        }
+    }
+    if(dirs.size()==0||i==dirs.size())
+    {
+        directory d;
+        d.fileName = string(fileName);
+        vector<HFPage*> pages;
+        d.pages = pages;
+        dirs.push_back(d);
+
+        directoryPages=d.pages;
+    } else{
+        directoryPages = dirs[i].pages;
+      //  cout<<directoryPages.size()<<endl;
+    }
+
     FileName = name;
     // fill in the body
     returnStatus = OK;
@@ -85,6 +113,9 @@ int HeapFile::getRecCnt()
 // Insert a record into the file
 Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
 {
+
+    if(recLen>=MINIBASE_PAGESIZE)
+        return MINIBASE_FIRST_ERROR(HEAPFILE,NO_SPACE);
     // fill in the body
     for(int i=0;i<directoryPages.size();i++) {
         HFPage *hfpage = directoryPages[i];
@@ -255,10 +286,10 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
         RID currId,temp;
         Status status = hfpage->firstRecord(currId);
         char *record;
-        int recLen;
+        int recLength;
         while(status==OK)
         {
-            Status returnStatus = hfpage->returnRecord(currId,record,recLen);
+            Status returnStatus = hfpage->returnRecord(currId,record,recLength);
             if(returnStatus!=OK)
                 return returnStatus;
             DataPageInfo *info = (DataPageInfo *)record;
@@ -272,6 +303,8 @@ Status HeapFile::updateRecord (const RID& rid, char *recPtr, int recLen)
                 Status status = hfDataPage->returnRecord(rid,originalRecord,len);
                 if(status!=OK)
                     return status;
+                if(len!=recLen)
+                    return MINIBASE_FIRST_ERROR(HEAPFILE,INVALID_UPDATE);
                 memcpy(originalRecord,recPtr,recLen);
                 MINIBASE_BM->unpinPage(rid.pageNo,DIRTY,this->fileName);
                 MINIBASE_BM->unpinPage(hfpage->page_no(),CLEAN,this->fileName);
@@ -343,8 +376,21 @@ Scan *HeapFile::openScan(Status& status)
 // Wipes out the heapfile from the database permanently. 
 Status HeapFile::deleteFile()
 {
+    int index,i;
+    for(i=0;i<dirs.size();i++)
+    {
+        if(strcmp(this->fileName,dirs[i].fileName.c_str())==0){
+                index =i;
+            break;
+        }
+    }
+    if(index>=0&&index<dirs.size()){
+        dirs.erase(dirs.begin()+index);
+        return OK;
+    }
+    return DONE;
     // fill in the body
-    return OK;
+
 }
 
 // ****************************************************************
@@ -526,6 +572,13 @@ Status HeapFile::allocateDirSpace(struct DataPageInfo * dpinfop,
         return status;
     status = MINIBASE_BM->unpinPage(allocDirPageId,DIRTY,this->fileName);
     directoryPages.push_back(dirPage);
+    int i=0;
+    for(i=0;i<dirs.size();i++)
+    {
+        if(strcmp(dirs[i].fileName.c_str(),this->fileName)==0)
+            break;
+    }
+    dirs[i].pages = directoryPages;
     return status;
 }
 
