@@ -104,7 +104,7 @@ Status HFPage::insertRecord(char* recPtr, int recLen, RID& rid)
            current = (slot_t *)(data+j*sizeof(slot_t));
             j++;
         }
-        slot_t *current = this->slot;
+    current = this->slot;
         j=0;
         while(j<= this->slotCnt)
         {
@@ -212,8 +212,8 @@ Status HFPage::deleteRecord(const RID& rid)
     if(slot==this->slotCnt-1)
     {
         //last slot record to be deleted..and compaction to be implemented
-        this->slotCnt = this->slotCnt-1;
-        this->freeSpace = this->freeSpace + sizeof(slot_t);
+      //  this->slotCnt = this->slotCnt-1;
+       // this->freeSpace = this->freeSpace + sizeof(slot_t);
         
     }
     return OK;
