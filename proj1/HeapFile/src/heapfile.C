@@ -210,7 +210,7 @@ Status HeapFile::deleteRecord (const RID& rid)
         DataPageInfo *info;
         while(status == OK)
         {
-            Status status = hfPage->returnRecord(currId,record,recLen);
+            status = hfPage->returnRecord(currId,record,recLen);
             if(status!=OK)
                 return status;
             info = (DataPageInfo *)record;
@@ -312,8 +312,9 @@ Status HeapFile::getRecord (const RID& rid, char *recPtr, int& recLen)
               Page *dataPage;
               MINIBASE_BM->pinPage(rid.pageNo,dataPage,0,this->fileName);
               HFPage *dp = (HFPage *)dataPage;
-
-              Status returnStatus = dp->returnRecord(rid,recPtr,recLen);
+              char *record;
+              Status returnStatus = dp->returnRecord(rid,record,recLen);
+              memcpy(recPtr,record,recLen);
               if(returnStatus!=OK)
                   return returnStatus;
               MINIBASE_BM->unpinPage(rid.pageNo,CLEAN,this->fileName);
