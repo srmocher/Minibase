@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <memory.h>
+#include <heapfile.h>
 
 #include "hfpage.h"
 #include "buf.h"
