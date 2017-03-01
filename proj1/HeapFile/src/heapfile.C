@@ -37,7 +37,7 @@ int recCount = 0;
 HeapFile::HeapFile( const char *name, Status& returnStatus )
 {
     this->fileName = new char[strlen(name)];
-    for(auto i=0;i<strlen(name);i++)
+    for(int i=0;i<strlen(name);i++)
         this->fileName[i]=name[i];
     this->file_deleted = 0;
     int i=0;
@@ -138,7 +138,7 @@ Status HeapFile::insertRecord(char *recPtr, int recLen, RID& outRid)
             if (info->availspace > recLen) {
                 outRid.pageNo = info->pageId;
                 Page *dataPage;
-                auto pinStatus = MINIBASE_BM->pinPage(info->pageId, dataPage, 0, this->fileName);
+                Status pinStatus = MINIBASE_BM->pinPage(info->pageId, dataPage, 0, this->fileName);
                 if (pinStatus != OK)
                     return pinStatus;
                 HFPage *hfdatapage = (HFPage *) dataPage;
