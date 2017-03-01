@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="proj1"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="proj1">
+				<Option output="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/proj1" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HFPage/include"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HeapFile/lib"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HFPage/lib"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 proj1"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="proj1/fast">
+				<Option output="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/proj1" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HFPage/include"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HeapFile/lib"/>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj1/HFPage/lib"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 proj1/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj1/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/buf.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/da_types.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/db.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/heap_driver.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/heapfile.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/hfpage.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/minirel.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/new_error.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/page.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/scan.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/system_defs.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/include/test_driver.h">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/heap_driver.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/heapfile.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/hfpage.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/main.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/new_error.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/page.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/scan.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/system_defs.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/HeapFile/src/test_driver.C">
+			<Option target="proj1"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj1/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

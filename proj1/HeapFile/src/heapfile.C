@@ -398,55 +398,11 @@ Status HeapFile::deleteFile()
 // (Allocate pages in the db file via buffer manager)
 Status HeapFile::newDataPage(DataPageInfo *dpinfop)
 {
-//    if(directoryPages.size()==0)
-//    {
-//        HFPage headerPage,dataPage;
-//        Page *page,*dpage;
-//        int pageId,dpageId;
-//        MINIBASE_BM->newPage(pageId,page,1);
-//        headerPage.init(pageId);
-//        MINIBASE_BM->newPage(dpageId,dpage,1);
-//        dataPage.init(dpageId);
-//        dpinfop = new DataPageInfo();
-//        dpinfop->availspace = dataPage.available_space();
-//        dpinfop->recct = 0;
-//        dpinfop->pageId = dpageId;
-//        RID rid;
-//      //  Status status = headerPage.insertRecord((char *)dpinfop,sizeof(DataPageInfo),rid);
-//        if(status == OK)
-//        {
-//            //directoryPages.push_back(headerPage);
-//            return OK;
-//        }
-//    }
-//    else
-//    {
-//        int spaceRequired = sizeof(DataPageInfo);
-//        HFPage dataPage;
-//        int dataPageId,dpId;
-//        Page *dataPageVar,*dirVar;
-//        RID rid;
-//        for(int i=0;i<directoryPages.size();i++)
-//        {
-//            HFPage dirPage = directoryPages[i];
-//            if(dirPage.available_space()>=spaceRequired)
-//            {
-//                dpinfop = new DataPageInfo();
-//                MINIBASE_BM->newPage(dataPageId,dataPageVar,1);
-//                dataPage.init(dataPageId);
-//                dpinfop->availspace = dataPage.available_space();
-//                dpinfop->pageId = dataPageId;
-//                dpinfop->recct = 0;
-//                Status status = dirPage.insertRecord((char *)dpinfop,spaceRequired,rid);
-//                if(status == OK)
-//                {
-//                    return OK;
-//                }
-//            }
-//        }
-        //HFPage dirPage;
-      //  MINIBASE_BM->newPage(dpId,dirVar,1);
-      //  dirPage.init(dpId);
+
+    if(dpinfop==NULL)
+    {
+
+    }
     int dataPageId;
     Page *dataPageVar;
     HFPage *dataPage;
