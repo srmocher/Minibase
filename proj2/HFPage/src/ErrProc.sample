@@ -1,0 +1,88 @@
+
+/* 
+ * This is a sample program to show you how to use the error protocol
+ * In Minibase, each layer (e.g., the Buffer Manager) decides upon the
+ * error conditions that it will check.  Each error is given an error code,
+ * and all error codes for a layer are declared in an enumeration.
+ * For the Buffer Manager, this enumeration is called bufErrCodes.
+ * Next, each error code is associated with a string that is the 
+ * corresponding error message.  For the Buffer Manager, this is done
+ * in an array of strings called bufErrMsgs[], and the error code serves
+ * as an index into this array.  This array is registered with Minibase
+ * by creating a static "error_string_table" object.  These three steps
+ * conclude the declaration of the errors to be checked for.  At run
+ * time, the Buffer Manager code will check for occurrences of these errors, and
+ * inform any caller by using the MINIBASE_FIRST_ERROR macro.
+ * Further, if the Buffer Manager calls another layer, e.g., the DB layer, 
+ * and the called layer reports an error, the Buffer Manager will pass this 
+ * information on by making an entry in a global error queue, using
+ * the MINIBASE_CHAIN_ERROR macro.  These points are illustrated in this
+ * file through examples; for more details, read new_error.h or the Minibase
+ * HTML page on errors.  There are additional methods available for
+ * dealing with errors, but in this assignment, you will be be required to use them.
+ */
+
+///////////////////////////////////////////////////////////////////////////
+//                                                                       //
+// in buf.h file                                                         //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+// Sample enums for internal errors; you need to add more.
+enum bufErrCodes  {HASHTBLERROR, HASHNOTFOUND, BUFFEREXCEEDED};
+
+
+///////////////////////////////////////////////////////////////////////////
+//                                                                       //
+// in buf.C                                                              //
+//                                                                       //
+///////////////////////////////////////////////////////////////////////////
+
+// Define Buffer Manager error message 
+static const char* bufErrMsgs[] = { "hash table error",
+				    "hash entry not found",
+				    "buffer pool full",
+				    };
+
+// Create a static "error_string_table" object, and register the error message 
+// with the Minibase system
+static error_string_table bufTable( BUFMGR, bufErrMsgs );
+
+//
+// Within each function, we check errors and push them into global queue
+// e.g.
+
+Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage)
+{
+
+ int Avail_Buframe;  // available buffer space, number of unpinned frames
+ Status  st;	      // Stores the execution status
+
+ .
+ .
+ .
+
+ // Example error 1:   A page is requested, but the buffer pool is full. 
+ if ( Avail_Buframe ==0 )
+	// This error is detected for the first time, and so we use the 
+	// MINIBASE_FIRST_ERROR macro to add it into global queue.
+	return MINIBASE_FIRST_ERROR(BUFMGR,BUFFEREXCEEDED);
+
+ .
+ .
+ .
+
+ // Example error 2:  (Independent of the previous example.)  When the
+ // Buffer Manager calls the DB layer to read a page, some error occurs
+ // and is first detected by the DB layer.  Now, the Buffer Manager must
+ // propagate information about this error.
+ st = MINIBASE_DB->read_page(...);
+ if (st != OK)
+	// the error was detected in another layer, and so we use the 
+	// MINIBASE_CHAIN_ERROR macro to add it to the global queue of errors
+	return MINIBASE_CHAIN_ERROR(BUFMGR, st);
+
+ .
+ .
+ .
+ }

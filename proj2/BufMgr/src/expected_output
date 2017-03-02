@@ -1,0 +1,229 @@
+
+Running Buffer Management tests...
+--------------------- Test 1 ----------------------
+after pinPage5
+after unpinPage5
+after pinPage6
+after unpinPage6
+after pinPage7
+after unpinPage7
+after pinPage8
+after unpinPage8
+after pinPage9
+after unpinPage9
+after pinPage10
+after unpinPage10
+after pinPage11
+after unpinPage11
+after pinPage12
+after unpinPage12
+after pinPage13
+after unpinPage13
+after pinPage14
+after unpinPage14
+after pinPage15
+after unpinPage15
+after pinPage16
+after unpinPage16
+after pinPage17
+after unpinPage17
+after pinPage18
+after unpinPage18
+after pinPage19
+after unpinPage19
+after pinPage20
+after unpinPage20
+after pinPage21
+after unpinPage21
+after pinPage22
+after unpinPage22
+after pinPage23
+after unpinPage23
+after pinPage24
+after unpinPage24
+after pinPage25
+after unpinPage25
+after pinPage26
+after unpinPage26
+after pinPage27
+after unpinPage27
+after pinPage28
+after unpinPage28
+after pinPage29
+after unpinPage29
+after pinPage30
+after unpinPage30
+
+
+PAGE[5]: This is test 1 for page 5
+PAGE[6]: This is test 1 for page 6
+PAGE[7]: This is test 1 for page 7
+PAGE[8]: This is test 1 for page 8
+PAGE[9]: This is test 1 for page 9
+PAGE[10]: This is test 1 for page 10
+PAGE[11]: This is test 1 for page 11
+PAGE[12]: This is test 1 for page 12
+PAGE[13]: This is test 1 for page 13
+PAGE[14]: This is test 1 for page 14
+PAGE[15]: This is test 1 for page 15
+PAGE[16]: This is test 1 for page 16
+PAGE[17]: This is test 1 for page 17
+PAGE[18]: This is test 1 for page 18
+PAGE[19]: This is test 1 for page 19
+PAGE[20]: This is test 1 for page 20
+PAGE[21]: This is test 1 for page 21
+PAGE[22]: This is test 1 for page 22
+PAGE[23]: This is test 1 for page 23
+PAGE[24]: This is test 1 for page 24
+PAGE[25]: This is test 1 for page 25
+PAGE[26]: This is test 1 for page 26
+PAGE[27]: This is test 1 for page 27
+PAGE[28]: This is test 1 for page 28
+PAGE[29]: This is test 1 for page 29
+PAGE[30]: This is test 1 for page 30
+--------------------- Test 2 ----------------------
+Page 6 at frame 2 is unpinned as loved.
+Page 7 at frame 3 is unpinned as loved.
+Page 8 at frame 4 is unpinned as loved.
+Page 9 at frame 5 is unpinned as loved.
+Page 10 at frame 6 is unpinned as loved.
+Page 11 at frame 7 is unpinned as loved.
+Page 12 at frame 8 is unpinned as loved.
+Page 13 at frame 9 is unpinned as loved.
+Page 14 at frame 10 is unpinned as loved.
+Page 15 at frame 11 is unpinned as loved.
+Page 16 at frame 12 is unpinned as hated.
+Page 17 at frame 13 is unpinned as hated.
+Page 18 at frame 14 is unpinned as hated.
+Page 19 at frame 15 is unpinned as hated.
+Page 20 at frame 16 is unpinned as hated.
+Page 21 at frame 17 is unpinned as hated.
+Page 22 at frame 18 is unpinned as hated.
+Page 23 at frame 19 is unpinned as hated.
+Page 24 at frame 0 is unpinned as hated.
+Page 25 at frame 1 is unpinned as hated.
+
+Testing replacement policy with respect to hated pages...
+Pinning 10 unseen pages.
+Page 45 pinned in frame 1
+Page 44 pinned in frame 0
+Page 43 pinned in frame 19
+Page 42 pinned in frame 18
+Page 41 pinned in frame 17
+Page 40 pinned in frame 16
+Page 39 pinned in frame 15
+Page 38 pinned in frame 14
+Page 37 pinned in frame 13
+Page 36 pinned in frame 12
+
+Testing replacement policy with respect to loved pages...
+Pinning an additional 10 unseen pages.
+Page 26 pinned in frame 2
+Page 27 pinned in frame 3
+Page 28 pinned in frame 4
+Page 29 pinned in frame 5
+Page 30 pinned in frame 6
+Page 31 pinned in frame 7
+Page 32 pinned in frame 8
+Page 33 pinned in frame 9
+Page 34 pinned in frame 10
+Page 35 pinned in frame 11
+--------------------- Test 3 ----------------------
+Pinning page 0 2
+Pinning page 1 3
+Pinning page 2 4
+Pinning page 3 5
+Pinning page 4 6
+Pinning page 5 7
+Pinning page 6 8
+Pinning page 7 9
+Pinning page 8 10
+Pinning page 9 11
+Freeing page 7
+Freeing page 8
+Freeing page 9
+Freeing page 10
+Freeing page 11
+free  page 2
+free  page 3
+free  page 4
+free  page 5
+free  page 6
+free  page 7
+free  page 8
+free  page 9
+free  page 10
+free  page 11
+new  page 10,2
+new  page 11,3
+new  page 12,4
+new  page 13,5
+new  page 14,6
+new  page 15,7
+new  page 16,8
+new  page 17,9
+new  page 18,10
+new  page 19,11
+new  page 20,12
+new  page 21,13
+new  page 22,14
+new  page 23,15
+--------------------- Test 4 ----------------------
+	newPage successful
+	Unpinning of page successful
+	Pinning of page successful
+	Dirtied page written to disk
+--------------------- Test 5 ----------------------
+	Allocate 10 pages successful
+	Unpinning of a pinned page successful
+	Unpinning of an unpinned page failed
+	Pinning of a non-existent page failed
+	Unpinning of a non-existent page failed
+	Pinning of page successful
+	Freeing a pinned page failed 
+	Freeing allocated pages successful
+	Allocate page successful
+	Pinning a page in a full buffer failed
+	Freeing allocated pages successful
+--------------------- Test 6 ----------------------
+after pinPage1
+after flushPage1
+after pinPage2
+after flushPage2
+after pinPage3
+after flushPage3
+after pinPage4
+after flushPage4
+after pinPage5
+after flushPage5
+after pinPage6
+after flushPage6
+after pinPage7
+after flushPage7
+after pinPage8
+after flushPage8
+after pinPage9
+after flushPage9
+after pinPage10
+after flushPage10
+after pinPage11
+after flushPage11
+after pinPage12
+after flushPage12
+
+
+PAGE[1]: This is test 6 for page 1
+PAGE[2]: This is test 6 for page 2
+PAGE[3]: This is test 6 for page 3
+PAGE[4]: This is test 6 for page 4
+PAGE[5]: This is test 6 for page 5
+PAGE[6]: This is test 6 for page 6
+PAGE[7]: This is test 6 for page 7
+PAGE[8]: This is test 6 for page 8
+PAGE[9]: This is test 6 for page 9
+PAGE[10]: This is test 6 for page 10
+PAGE[11]: This is test 6 for page 11
+PAGE[12]: This is test 6 for page 12
+
+...Buffer Management tests completed successfully.
+

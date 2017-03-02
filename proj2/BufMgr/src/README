@@ -1,0 +1,13 @@
+
+**** Project part2: buffer manager ****
+
+Makefile: a sample makefile to compile your project
+
+buf.C: source code for BufMgr class implementation
+
+../include/buf.h: specifications for the class BufMgr
+
+main.C, test_driver.C, BMTester.C: the testing programs
+
+ErrProc.sample: a sample program to help you use the error protocol.
+
