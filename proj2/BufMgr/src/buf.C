@@ -36,6 +36,8 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
 BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   // put your code here
+    this->numBuffers = numbuf;
+    this->bufPool = new Page[numbuf];
 }
 
 //*************************************************************
@@ -50,6 +52,12 @@ BufMgr::~BufMgr(){
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   // put your code here
+    for(int i=0;i<numBuffers;i++)
+    {
+        Page pg = bufPool[i];
+
+
+    }
   return OK;
 }//end pinPage
 
