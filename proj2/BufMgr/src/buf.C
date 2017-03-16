@@ -3,6 +3,7 @@
 /*****************************************************************************/
 
 
+#include <buf.h>
 #include "buf.h"
 
 
@@ -30,6 +31,7 @@ static const char* bufErrMsgs[] = {
 // with minibase system 
 static error_string_table bufTable(BUFMGR,bufErrMsgs);
 
+
 //*************************************************************
 //** This is the implementation of BufMgr
 //************************************************************
@@ -37,7 +39,15 @@ static error_string_table bufTable(BUFMGR,bufErrMsgs);
 BufMgr::BufMgr (int numbuf, Replacer *replacer) {
   // put your code here
     this->numBuffers = numbuf;
-    this->bufPool = new Page[numbuf];
+    this->hashTable = new HashEntry[HTSIZE];
+   this->bufPool = new Page[numbuf];
+   this->descriptors = new Descriptor[numbuf];
+    for(int i=0;i<numbuf;i++) {
+        descriptors[i].pageNumber = -1;
+        descriptors[i].pin_count = 0;
+        descriptors[i].dirty = false;
+    }
+
 }
 
 //*************************************************************
@@ -52,11 +62,37 @@ BufMgr::~BufMgr(){
 //************************************************************
 Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
   // put your code here
+
+
     for(int i=0;i<numBuffers;i++)
     {
-        Page pg = bufPool[i];
-
-
+        if(descriptors[i].pageNumber==-1)
+        {
+            int frameIndex = hash(PageId_in_a_DB);
+            HashEntry *entry = new HashEntry();
+            entry->pageNumber = PageId_in_a_DB;
+            entry->frameNumber = i;
+            HashEntry *current = hashTable+frameIndex;
+            entry->next = NULL;
+            if(current!=NULL)
+            {
+                         while (current->next!=NULL)
+                             current=current->next;
+                        current->next = entry;
+            }
+            else
+            {
+                current = entry;
+            }
+            if(emptyPage!=TRUE)
+            {
+                MINIBASE_DB->read_page(PageId_in_a_DB,page);
+                memcpy(bufPool + i,page,sizeof(Page));
+            }
+            descriptors[i].pin_count += 1;
+            descriptors[i].pageNumber = PageId_in_a_DB;
+            return OK;
+        }
     }
   return OK;
 }//end pinPage
@@ -123,6 +159,16 @@ Status unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename){
 //** This is the implementation of getNumUnpinnedBuffers
 //************************************************************
 unsigned int BufMgr::getNumUnpinnedBuffers(){
-  //put your code here
-  return 0;
+    int unpinned = 0;
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber!=-1 && descriptors[i].pin_count>0)
+            unpinned++;
+    }
+    return unpinned;
+}
+
+int BufMgr::hash(int pageNumber)
+{
+    return (2*pageNumber + 1)%HTSIZE;
 }
