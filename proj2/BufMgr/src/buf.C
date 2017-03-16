@@ -47,7 +47,7 @@ BufMgr::BufMgr (int numbuf, Replacer *replacer) {
         descriptors[i].pin_count = 0;
         descriptors[i].dirty = false;
     }
-
+    this->replacer = new Replacer();
 }
 
 //*************************************************************
@@ -94,6 +94,17 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
             return OK;
         }
     }
+    PageId victim = replacer->getVictim();
+    int frameIndex = hash(victim);
+    HashEntry *entry = hashTable + frameIndex;
+    if(entry->pageNumber == victim)
+    {
+        HashEntry *next = entry->next;
+        delete(entry);
+        entry = next;
+    }
+
+    //no frame available choose a replacement
   return OK;
 }//end pinPage
 
@@ -102,6 +113,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 //************************************************************
 Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   // put your code here
+
   return OK;
 }
 
@@ -110,7 +122,37 @@ Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
 //************************************************************
 Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
   // put your code here
-  return OK;
+
+    for(int i=0;i<numBuffers;i++)
+    {
+        if(descriptors[i].pageNumber == -1)
+        {
+            MINIBASE_DB->allocate_page(firstPageId,howmany);
+            MINIBASE_DB->read_page(firstPageId,firstpage);
+            descriptors[i].pageNumber = firstPageId;
+            descriptors[i].pin_count = 0;
+            descriptors[i].dirty = false;
+            int frameIndex = hash(firstPageId);
+            HashEntry *entry = new HashEntry();
+            entry->pageNumber = firstPageId;
+            entry->frameNumber = i;
+            entry->next = NULL;
+            HashEntry *current = hashTable+frameIndex;
+            if(current!=NULL)
+            {
+                while(current->next!=NULL)
+                    current=current->next;
+                current->next = entry;
+            }
+            else
+            {
+                current = entry;
+            }
+            memcpy(bufPool+i,firstpage,sizeof(Page));
+            return OK;
+        }
+    }
+  return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERFULL);
 }
 
 //*************************************************************
@@ -171,4 +213,34 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
 int BufMgr::hash(int pageNumber)
 {
     return (2*pageNumber + 1)%HTSIZE;
+}
+
+Replacer::Replacer() {}
+
+void Replacer::addtoLRUQueue(PageId pageNumber) {
+         LRUQueue.push(pageNumber);
+}
+
+PageId Replacer::getVictim() {
+    if(MRUStack.empty() && LRUQueue.empty()){
+        return -1;
+    }
+    if(!MRUStack.empty()){
+        PageId pageNumber = MRUStack.top();
+        if(LRUQueue.front()==pageNumber){
+            MRUStack.pop();
+            pageNumber = MRUStack.top();
+        }
+        MRUStack.pop();
+        return pageNumber;
+    }
+    if(!LRUQueue.empty()){
+        PageId  pageNumber = LRUQueue.front();
+        LRUQueue.pop();
+        return pageNumber;
+    }
+}
+
+void Replacer::addtoMRUStack(PageId pageNumber) {
+    MRUStack.push(pageNumber);
 }

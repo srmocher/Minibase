@@ -9,6 +9,8 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
+#include <queue>
+#include <stack>
 
 #define NUMBUF 20   
 // Default number of frames, artifically small number for ease of debugging.
@@ -25,15 +27,30 @@ enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUN
 			BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
 class Replacer; // may not be necessary as described below in the constructor
+typedef struct{
+    PageId pageNumber;
+    int pin_count;
+    bool dirty;
+}Descriptor;
+
+typedef  struct HashEntry{
+    PageId pageNumber;
+    int frameNumber;
+    HashEntry *next;
+};
+
 
 class BufMgr {
 
 private: 
    unsigned int    numBuffers;
+    int hash(int);
+    Replacer *replacer;
    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
-
+    Descriptor *descriptors;
+    HashEntry *hashTable;
     BufMgr (int numbuf, Replacer *replacer = 0); 
    	// Initializes a buffer manager managing "numbuf" buffers.
 	// Disregard the "replacer" parameter for now. In the full 
@@ -86,6 +103,19 @@ public:
 
     unsigned int getNumUnpinnedBuffers();
 	// Get number of unpinned buffers
+};
+
+class Replacer
+{
+private:
+        queue<PageId> LRUQueue;
+        stack<PageId> MRUStack;
+
+public:
+    Replacer();
+    void addtoLRUQueue(PageId);
+    void addtoMRUStack(PageId);
+    PageId getVictim();
 };
 
 #endif
