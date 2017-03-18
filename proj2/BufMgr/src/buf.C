@@ -113,8 +113,48 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage) {
 //************************************************************
 Status BufMgr::unpinPage(PageId page_num, int dirty=FALSE, int hate = FALSE){
   // put your code here
+  
+  	for(int i=0;i<numBuffers;i++)
+	{
+        if(descriptors[i].pageNumber!=-1)
+        {
+            int frameIndex = hash(page_num);
+            HashEntry *entry = hashTable + frameIndex;
+            Hash
+    		if(entry->next == NULL)
+    		{
+    			delete(entry);
+    		}
+    		else
+    		{
+    			hashTable + frameindex = entry->next;
+    			delete(entry);
+    		}
+    		if(description[i].pin_count == 0)
+    		{
+    			return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERPAGENOTPINNED);
+    		}
+    			
+            if(descriptors[i].pageNumber == page_num)
+            {
+            	descriptors[i].pageNumber = -1;
+        		descriptors[i].pin_count -= 1;
+        		descriptors[i].dirty = dirty;
+        		
+        		if(descriptor[i].pin_count == 0 && hate == FALSE)
+        		{
+        			replacer->addtoLRUQueue(page_num);
+        		}
+        		else if(descriptors[i].pin_count == 0 && hate == TRUE)
+        		{
+        			replacer->addtoMRUStack(page_num);
+        		}
+        		return OK;
+            }
+        }
+    }
 
-  return OK;
+  return DONE;
 }
 
 //*************************************************************
