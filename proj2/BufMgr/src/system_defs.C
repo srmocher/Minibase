@@ -78,8 +78,6 @@ void SystemDefs::init( Status& status, const char* dbname, const char* logname,
 
         GlobalLogName = GlobalShMemMgr->malloc(strlen(logname)+1);
         strcpy(GlobalLogName,logname);
-
-
       // create or open the DB 
     if ((MINIBASE_RESTART_FLAG) || (num_pgs == 0)){// open an existing database
         GlobalDB = new DB(dbname,status);
@@ -89,6 +87,7 @@ void SystemDefs::init( Status& status, const char* dbname, const char* logname,
             return;
         }
     } else {
+
         GlobalDB = new DB(dbname,num_pgs,status);
         if (status != OK) {
             cerr << "Error creating Database " << dbname << endl;

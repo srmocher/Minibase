@@ -10,6 +10,7 @@
 #include "buf.h"
 #include "db.h"
 #include <pwd.h>
+#include <test_driver.h>
 
 
 #include "BMTester.h"
@@ -38,7 +39,7 @@ int BMTester::test1()
 	int	first,last;
 	char data[200]; 
 	first = 5;
-	last = first + NUMBUF + 5;
+    	last = first + NUMBUF + 5;
 
 	cout << "--------------------- Test 1 ----------------------\n";
         st = OK;
@@ -66,6 +67,7 @@ int BMTester::test1()
         	}
         	cout<<"PAGE["<<i<<"]: "<<(char *)pg;
         	sprintf(data,"This is test 1 for page %d\n",i);
+          //  cout<<data<<endl;
         	if (strcmp(data,(char*)pg)) {
             		st = FAIL;
             		cerr << "Error: page content incorrect!\n";
