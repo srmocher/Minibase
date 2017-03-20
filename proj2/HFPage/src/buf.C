@@ -379,7 +379,7 @@ Status BufMgr::pinPage(PageId PageId_in_a_DB, Page*& page, int emptyPage, const 
 //*************************************************************
 //** This is the implementation of unpinPage
 //************************************************************
-Status BufMgr::unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename){
+Status unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename){
   //put your code here
 
   return unpinPage(globalPageId_in_a_DB,dirty,FALSE);
@@ -392,7 +392,7 @@ unsigned int BufMgr::getNumUnpinnedBuffers(){
     int unpinned = 0;
     for(int i=0;i<numBuffers;i++)
     {
-        if(descriptors[i].pin_count==0)
+        if(descriptors[i].pageNumber!=-1 && descriptors[i].pin_count>0)
             unpinned++;
     }
     return unpinned;

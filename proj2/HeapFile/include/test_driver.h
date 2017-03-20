@@ -5,7 +5,7 @@
 #define _TEST_DRIVER_H_
 
 #include "minirel.h"
-extern "C" int unlink( const char* );
+//extern "C" int unlink( const char* );
 
 class TestDriver
 {

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="proj2"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="proj2">
+				<Option output="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/proj2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 proj2"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="proj2/fast">
+				<Option output="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/proj2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 proj2/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/sridhar/Desktop/Minibase/proj2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/BMTester.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/buf.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/da_types.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/db.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/minirel.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/new_error.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/page.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/system_defs.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/include/test_driver.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/lib">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/BMTester.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/buf.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/main.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/new_error.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/page.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/system_defs.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/BufMgr/src/test_driver.C">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/HeapFile/include/buf.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/HeapFile/include/db.h">
+			<Option target="proj2"/>
+		</Unit>
+		<Unit filename="/home/sridhar/Desktop/Minibase/proj2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
