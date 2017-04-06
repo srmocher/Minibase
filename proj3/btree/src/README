@@ -1,0 +1,22 @@
+
+*** Date: 03/27/14 ***
+*** Writer: Young-K. Suh (yksuh@cs.arizona.edu) ***
+
+All the files in this directory:
+
+Makefile: a sample makefile
+
+btfile.C, btindex_page.C, btleaf_page.C, btreefilescan.C:
+you need to write these .C files and their corresponding .h files in ../include.
+
+buf.C: This has empty body. You can replace this file with your buffer manager used for project 2.
+
+main.C, btree_driver.C, keys: these are the test driver
+
+sorted_page.C: You also need to implement this.
+
+hfpage.C: This has empty body. You can replace this file with your hfpage used for project 1.
+
+Other .C files: They are same as ones used in projects 1 and 2.
+
+expected_output: results of running the test driver using a correct implementation
