@@ -113,20 +113,15 @@ Status SortedPage::insertRecord (AttrType key_type,
       i++;
   }
   std::sort(slotsInfo.begin(),slotsInfo.end());
+  current =this->slot;
 
+  int j=0;
   for(int i=0;i<slotsInfo.size();i++)
   {
-        int slotNo = slotsInfo[i].slotNo;
-        if(slotNo == 0)
-        {
-            this->slot->length = slotsInfo[i].length;
-            this->slot->offset = slotsInfo[i].offset;
-        } else
-        {
-            slot_t *temp = (slot_t *)data+(slotNo-1)*sizeof(slot_t);
-            temp->offset = slotsInfo[i].length;
-            temp->length = slotsInfo[i].offset;
-        }
+    current->offset = slotsInfo[i].offset;
+    current->length = slotsInfo[i].length;
+    j++;
+    current = ((slot_t *)data+j*sizeof(slot_t));
   }
   return OK;
 }

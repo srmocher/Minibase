@@ -24,8 +24,17 @@
  */
 int keyCompare(const void *key1, const void *key2, AttrType t)
 {
-  // put your code here
-  return 0;
+    if(t == attrString)
+    {
+        char *k1 = (char *)key1;
+        char *k2 = (char *)key2;
+        return strcmp(k1,k2);
+    } else
+    {
+        int *k1 = (int *)key1;
+        int *k2 = (int *)key2;
+        return *k1-*k2;
+    }
 }
 
 /*
@@ -41,6 +50,8 @@ void make_entry(KeyDataEntry *target,
                 int *pentry_len)
 {
   // put your code here
+
+
   return;
 }
 
@@ -62,8 +73,22 @@ void get_key_data(void *targetkey, Datatype *targetdata,
  */
 int get_key_length(const void *key, const AttrType key_type)
 {
- // put your code here
- return 0;
+    if(key_type==attrString)
+    {
+        char *rec = (char *)key;
+        return strlen(rec);
+    }
+    else
+    {
+        int num = (int)key;
+        int length = 0;
+        while(num%10>0)
+        {
+            num/=10;
+            length++;
+        }
+        return length;
+    }
 }
  
 /*
