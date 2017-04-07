@@ -17,13 +17,18 @@
 class SlotData
 {
    public:
-    char *data;
+    char *stringData;
+    int intData;
+    AttrType type;
     int slotNo;
     int length;
     int offset;
     SlotData();
     bool operator<(const SlotData &other) const{
-        return strcmp(data,other.data) < 0;
+         if(type == attrString)
+          return strcmp(stringData,other.stringData) < 0;
+         else
+             return intData < other.intData;
     }
 };
 
@@ -82,7 +87,27 @@ Status SortedPage::insertRecord (AttrType key_type,
       int length = current->length;
       slotData.length = length;
       slotData.offset = offset;
-      slotData.data = data+offset; // have to fix this, should only store key
+      if(key_type == attrString)
+      {
+        if(recLen > MAX_KEY_SIZE1)
+        {
+            char *rec = new char[MAX_KEY_SIZE1];
+            for(int j=0;j<MAX_KEY_SIZE1;j++)
+                rec[j] = data[offset+j];
+            slotData.stringData = rec;
+        }
+        else
+        {
+            char *rec = new char[recLen];
+            for(int j=0;j<recLen;j++)
+                rec[j] = data[offset+j];
+            slotData.stringData = rec;
+        }
+      }
+      else
+      {
+          slotData.intData = data[offset];
+      }
       slotsInfo.push_back(slotData);
       current = ((slot_t *)data+i*sizeof(slot_t));
       i++;
