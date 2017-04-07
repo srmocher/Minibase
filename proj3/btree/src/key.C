@@ -76,18 +76,11 @@ int get_key_length(const void *key, const AttrType key_type)
     if(key_type==attrString)
     {
         char *rec = (char *)key;
-        return strlen(rec);
+        return strlen(rec)*sizeof(char);
     }
     else
     {
-        int num = (int)key;
-        int length = 0;
-        while(num%10>0)
-        {
-            num/=10;
-            length++;
-        }
-        return length;
+        return sizeof(int);
     }
 }
  
@@ -97,6 +90,21 @@ int get_key_length(const void *key, const AttrType key_type)
 int get_key_data_length(const void *key, const AttrType key_type, 
                         const nodetype ndtype)
 {
+
+    if(key_type == attrString)
+    {
+        char *str = (char *)key;
+        if(ndtype == LEAF)
+            return strlen(str) + sizeof(RID);
+        else if(ndtype == INDEX)
+            return strlen(str) + sizeof(PageId);
+    } else{
+        int num = (int)key;
+        if(ndtype == LEAF)
+            return sizeof(int)+sizeof(RID);
+        else if(ndtype == INDEX)
+            return sizeof(int) + sizeof(PageId);
+    }
  // put your code here
  return 0;
 }
