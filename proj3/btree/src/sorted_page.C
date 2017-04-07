@@ -82,6 +82,10 @@ Status SortedPage::insertRecord (AttrType key_type,
   {
       SlotData slotData;
       slotData.slotNo = i;
+      if(current->offset==-1){
+          current = ((slot_t *)data+i*sizeof(slot_t));
+          continue;
+      }
 
       int offset = current->offset;
       int length = current->length;
@@ -116,13 +120,19 @@ Status SortedPage::insertRecord (AttrType key_type,
   current =this->slot;
 
   int j=0;
-  for(int i=0;i<slotsInfo.size();i++)
-  {
-    current->offset = slotsInfo[i].offset;
-    current->length = slotsInfo[i].length;
-    j++;
-    current = ((slot_t *)data+j*sizeof(slot_t));
-  }
+    i=0;
+   while (i <= this->slotCnt)
+   {
+       if(current->offset==-1){
+           current = ((slot_t *)data+i*sizeof(slot_t));
+           continue;
+       }
+       current->offset = slotsInfo[j].offset;
+       current->length = slotsInfo[j].length;
+       j++;
+       i++;
+       current = ((slot_t *)data+i*sizeof(slot_t));
+   }
   return OK;
 }
 
