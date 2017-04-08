@@ -84,6 +84,7 @@ Status SortedPage::insertRecord (AttrType key_type,
       slotData.slotNo = i;
       if(current->offset==-1){
           current = ((slot_t *)data+i*sizeof(slot_t));
+          i++;
           continue;
       }
 
@@ -125,6 +126,7 @@ Status SortedPage::insertRecord (AttrType key_type,
    {
        if(current->offset==-1){
            current = ((slot_t *)data+i*sizeof(slot_t));
+           i++;
            continue;
        }
        current->offset = slotsInfo[j].offset;
