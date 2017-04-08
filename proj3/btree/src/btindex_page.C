@@ -41,14 +41,14 @@ Status BTIndexPage::insertKey (const void *key,
     for(int i=0;i<MAX_KEY_SIZE1;i++)
       record[i]=keyValue[i];
 
-    memcpy(record+MAX_KEY_SIZE1,(void *)pageNo,sizeof(PageId));
+    memcpy(record+MAX_KEY_SIZE1,pageNo,sizeof(PageId));
     status = SortedPage::insertRecord(key_type,record,dataLength,rid);
 
   }
   else if(key_type == attrInteger){
 
     int keyDataLength = sizeof(int) + sizeof(PageId);
-    int k = (int)key;
+    int *k = (int *)key;
     char *record = new char[keyDataLength];
     memcpy(record,key,sizeof(int));
     memcpy(record+sizeof(int),(void *)pageNo,sizeof(PageId));
@@ -63,7 +63,12 @@ Status BTIndexPage::insertKey (const void *key,
 Status BTIndexPage::deleteKey (const void *key, AttrType key_type, RID& curRid)
 {
 
+  if(key_type == attrInteger){
 
+  }
+  else if(key_type == attrString){
+
+  }
   // put your code here
   return OK;
 }
@@ -72,8 +77,60 @@ Status BTIndexPage::get_page_no(const void *key,
                                 AttrType key_type,
                                 PageId & pageNo)
 {
+
+  if(key_type == attrInteger){
+    int *k = (int *)key;
+
+    RID rid,nextRid;
+    void *key_val;
+    PageId pageNum;
+    Status status = get_first(rid,key_val,pageNum);
+    if(status!=OK)
+      return status;
+    int *key_cast_val = (int *)key_val;
+    if(*key_cast_val == *k)
+    {
+        pageNo =pageNum;
+        return OK;
+    }
+    status = get_next(rid,key_val,pageNum);
+    while(status == OK)
+    {
+        key_cast_val = (int *)key_val;
+        if(*key_cast_val == *k)
+        {
+          pageNo =pageNum;
+          return OK;
+        }
+        status = get_next(rid,key_val,pageNum);
+    }
+
+  } else if(key_type == attrString){
+
+    char *k = (char *)key;
+    RID rid;
+    char *key_val;
+    PageId pageNum;
+    Status  status = get_first(rid,key_val,pageNum);
+    if(status!=OK)
+      return status;
+    if(strcmp(key_val,k)==0)
+    {
+      pageNo=pageNum;
+      return OK;
+    }
+    status = get_next(rid,key_val,pageNum);
+    while(status == OK)
+    {
+       if(strcmp(key_val,k)==0){
+         pageNo = pageNum;
+         return OK;
+       }
+      status = get_next(rid,key_val,pageNum);
+    }
+  }
   // put your code here
-  return OK;
+  return DONE;
 }
 
     
@@ -161,5 +218,6 @@ Status BTIndexPage::get_next(RID& rid, void *key, PageId & pageNo)
   PageId *page =new PageId[1];
   memcpy(page,record+MAX_KEY_SIZE1,sizeof(PageId));
   pageNo = page[0];
+  rid = nextRid;
   return OK;
 }
