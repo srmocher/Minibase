@@ -6,6 +6,8 @@
  */
 
 #include "btleaf_page.h"
+#include <cstdio>
+#include <cstring>
 
 const char* BTLeafErrorMsgs[] = {
 // OK,
@@ -41,8 +43,41 @@ Status BTLeafPage::insertRec(const void *key,
                               RID dataRid,
                               RID& rid)
 {
+  Status status;
+  if(key_type == attrString){
+    char *k = (char *)key;
+    int length = get_key_length(key,key_type);
+    char keyValue[MAX_KEY_SIZE1];
+
+
+    for(int i=0;i<length;i++)
+      keyValue[i]=k[i];
+
+    for(int i=length;i<MAX_KEY_SIZE1;i++)
+      keyValue[i]=' ';
+
+    int dataLength = sizeof(RID)+MAX_KEY_SIZE1;
+    char *record = new char[dataLength];
+    for(int i=0;i<MAX_KEY_SIZE1;i++)
+      record[i]=keyValue[i];
+
+    memcpy(record+MAX_KEY_SIZE1,&dataRid,sizeof(RID));
+    status = SortedPage::insertRecord(key_type,record,dataLength,rid);
+
+  }
+  else if(key_type == attrInteger){
+
+    int keyDataLength = sizeof(int) + sizeof(RID);
+    int *k = (int *)key;
+    char *record = new char[keyDataLength];
+    memcpy(record,key,sizeof(int));
+    memcpy(record+sizeof(int),&dataRid,sizeof(RID));
+
+    status = SortedPage::insertRecord(key_type,record,keyDataLength,rid);
+  } else
+    return DONE;
   // put your code here
-  return OK;
+  return status;
 }
 
 /*
@@ -60,8 +95,58 @@ Status BTLeafPage::get_data_rid(void *key,
                                 AttrType key_type,
                                 RID & dataRid)
 {
-  // put your code here
-  return OK;
+    Status status;
+    if(key_type == attrInteger){
+        int *k = (int *)key;
+
+        RID rid,nextRid;
+        int *key_val;
+        status = get_first(rid,key_val,nextRid);
+        if(status!=OK)
+            return status;
+        int *key_cast_val = (int *)key_val;
+        if(*key_cast_val == *k)
+        {
+            dataRid = nextRid;
+            return OK;
+        }
+        status = get_next(rid,key_val,nextRid);
+        while(status == OK)
+        {
+            key_cast_val = (int *)key_val;
+            if(*key_cast_val == *k)
+            {
+                dataRid = nextRid;
+                return OK;
+            }
+            status = get_next(rid,key_val,nextRid);
+        }
+
+    } else if(key_type == attrString){
+
+        char *k = (char *)key;
+        RID rid,nextRid;
+        char *key_val;
+        status = get_first(rid,key_val,nextRid);
+        if(status!=OK)
+            return status;
+        if(strcmp(key_val,k)==0)
+        {
+            dataRid = nextRid;
+            return OK;
+        }
+        status = get_next(rid,key_val,nextRid);
+        while(status == OK)
+        {
+            if(strcmp(key_val,k)==0){
+                dataRid = nextRid;
+                return OK;
+            }
+            status = get_next(rid,key_val,nextRid);
+        }
+    }
+    // put your code here
+    return DONE;
 }
 
 /* 
@@ -79,8 +164,42 @@ Status BTLeafPage::get_data_rid(void *key,
 Status BTLeafPage::get_first (RID& rid,
                               void *key,
                               RID & dataRid)
-{ 
-  // put your code here
+{
+    slot_t *currSlot = this->slot;
+    int i=0;
+    while(currSlot->offset==-1)
+    {
+        currSlot = (slot_t *)data+i*sizeof(slot_t);
+        i++;
+    }
+    rid.slotNo = i;
+    rid.pageNo = curPage;
+
+    int offset = currSlot->offset;
+    int length = currSlot->length;
+
+    char *record = new char[length];
+
+    for(int i=0;i<length;i++)
+        record[i] = data[offset+i];
+
+    if(type == attrInteger){
+        int *num = new int[1];
+        memcpy(num,record,sizeof(int));
+        key = (void *)num;
+        RID *tempdata = new RID[1];
+        memcpy(tempdata,record+sizeof(int),length-sizeof(int));
+        dataRid = tempdata[0];
+    }
+    else if(type == attrString){
+        char *k = new char[MAX_KEY_SIZE1];
+        memcpy(k,record,MAX_KEY_SIZE1);
+        key = (void *)k;
+        RID *tempdata = new RID[1];
+        memcpy(tempdata,record+MAX_KEY_SIZE1,length-MAX_KEY_SIZE1);
+        dataRid = tempdata[0];
+    }
+    // put your code here
   return OK;
 }
 
@@ -88,6 +207,52 @@ Status BTLeafPage::get_next (RID& rid,
                              void *key,
                              RID & dataRid)
 {
-  // put your code here
-  return OK;
+    RID nextRid;
+    Status status = HFPage::nextRecord(rid,nextRid);
+    if(status!=OK)
+        return NOMORERECS;
+    int slotNo = nextRid.slotNo;
+    int length,offset;
+    if(slotNo == 0)
+    {
+        slot_t *current = this->slot;
+        length = current->length;
+        offset = current->offset;
+    }
+    else
+    {
+        int i=0;
+        slot_t *current = this->slot;
+        while(true)
+        {
+            if(i==slotNo)
+                break;
+            current = (slot_t *)data + i*sizeof(slot_t);
+            i++;
+        }
+        length = current->length;
+        offset = current->offset;
+    }
+
+    char *record = new char[length];
+    memcpy(record,data+offset,length);
+
+    if(type == attrInteger){
+        int *num = new int[1];
+        memcpy(num,record,sizeof(int));
+        key = (void *)num;
+        RID *tempdata = new RID[1];
+        memcpy(tempdata,record+sizeof(int),length-sizeof(int));
+        dataRid = tempdata[0];
+    }
+    else if(type == attrString){
+        char *k = new char[MAX_KEY_SIZE1];
+        memcpy(k,record,MAX_KEY_SIZE1);
+        key = (void *)k;
+        RID *tempdata = new RID[1];
+        memcpy(tempdata,record+MAX_KEY_SIZE1,length-MAX_KEY_SIZE1);
+        dataRid = tempdata[0];
+    }
+    rid = nextRid;
+    return OK;
 }

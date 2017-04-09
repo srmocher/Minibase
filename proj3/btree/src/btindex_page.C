@@ -41,7 +41,7 @@ Status BTIndexPage::insertKey (const void *key,
     for(int i=0;i<MAX_KEY_SIZE1;i++)
       record[i]=keyValue[i];
 
-    memcpy(record+MAX_KEY_SIZE1,pageNo,sizeof(PageId));
+    memcpy(record+MAX_KEY_SIZE1,(void *)pageNo,sizeof(PageId));
     status = SortedPage::insertRecord(key_type,record,dataLength,rid);
 
   }
@@ -62,15 +62,65 @@ Status BTIndexPage::insertKey (const void *key,
 
 Status BTIndexPage::deleteKey (const void *key, AttrType key_type, RID& curRid)
 {
+  Status status;
+   int *givenkey = (int *)key;
+  RID r;
+  void *k;
+  PageId p;
 
   if(key_type == attrInteger){
+    status = get_first(r,k,p);
+      if(status!=OK)
+          return status;
 
+      int *keyval = (int *)k;
+      if(*keyval == *givenkey)
+      {
+          curRid = r;
+          status = SortedPage::deleteRecord(curRid);
+          return status;
+      }
+      status = get_next(r,k,p);
+      while(status == OK)
+      {
+          int *keyval = (int *)k;
+          if(*keyval == *givenkey)
+          {
+              curRid = r;
+              status = SortedPage::deleteRecord(curRid);
+              return status;
+          }
+          status = get_next(r,k,p);
+      }
   }
   else if(key_type == attrString){
-
+      char *givenkey = (char *)key;
+      RID r;
+      char *k;
+      PageId p;
+      Status  status;
+      status = get_first(r,k,p);
+      if(status!=OK)
+          return status;
+      if(strcmp(k,givenkey)==0)
+      {
+          curRid = r;
+          status = SortedPage::deleteRecord(curRid);
+          return status;
+      }
+      status = get_next(r,k,p);
+      while(status == OK)
+      {
+          if(strcmp(k,givenkey)==0){
+              curRid = r;
+              status = SortedPage::deleteRecord(curRid);
+              return status;
+          }
+          status = get_next(r,k,p);
+      }
   }
   // put your code here
-  return OK;
+  return DONE;
 }
 
 Status BTIndexPage::get_page_no(const void *key,
@@ -162,7 +212,7 @@ Status BTIndexPage::get_first(RID& rid,
       memcpy(num,record,sizeof(int));
       PageId *pageNum = new PageId[1];
       key = (void *)num;
-      memcpy(pageNum,record+sizeof(int),sizeof(PageId));
+      memcpy(pageNum,record+sizeof(int),length-sizeof(int));
       pageNo = pageNum[0];
     }
     else if(type == attrString){
@@ -207,17 +257,25 @@ Status BTIndexPage::get_next(RID& rid, void *key, PageId & pageNo)
       length = current->length;
       offset = current->offset;
   }
+    char *record = new char[length];
+    memcpy(record,data+offset,length);
 
-  char *record = new char[length];
-  memcpy(record,data+offset,length);
-
-  char *k = new char[MAX_KEY_SIZE1];
-  memcpy(k,record,MAX_KEY_SIZE1);
-
-  key = (void *)k;
-  PageId *page =new PageId[1];
-  memcpy(page,record+MAX_KEY_SIZE1,sizeof(PageId));
-  pageNo = page[0];
-  rid = nextRid;
+    if(type == attrInteger){
+        int *num = new int[1];
+        memcpy(num,record,sizeof(int));
+        PageId *pageNum = new PageId[1];
+        key = (void *)num;
+        memcpy(pageNum,record+sizeof(int),length-sizeof(int));
+        pageNo = pageNum[0];
+    }
+    else if(type == attrString){
+        char *k = new char[MAX_KEY_SIZE1];
+        memcpy(k,record,MAX_KEY_SIZE1);
+        PageId *pageNum = new PageId[1];
+        key = (void *)k;
+        memcpy(pageNum,record+MAX_KEY_SIZE1,length-MAX_KEY_SIZE1);
+        pageNo = pageNum[0];
+    }
+    rid = nextRid;
   return OK;
 }
