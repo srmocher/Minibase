@@ -13,6 +13,7 @@
 #include "index.h"
 #include "btreefilescan.h"
 #include "bt.h"
+#include <vector>
 
 // Define your error code for B+ tree here
 // enum btErrCodes  {...}
@@ -58,6 +59,18 @@ class BTreeFile: public IndexFile
     int keysize();
     
   private:
+    typedef struct {
+        PageId pageId;
+        AttrType keyType;
+        int keyLength;
+        int numLevels;
+    } HeaderPage;
+
+    HeaderPage *headerPage;
+    PageId headerPageId;
+    string fileName;
+    vector<BTLeafPage> leafPages;
+    Status split_page(SortedPage page,vector<char *>& firstPageRecords,vector<char *>& secondPageRecords);
 
 };
 
