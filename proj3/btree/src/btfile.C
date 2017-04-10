@@ -194,55 +194,50 @@ Status BTreeFile::split_page(SortedPage *page, SortedPage *first,SortedPage *sec
     if(type == LEAF) // splitting a leaf page
     {
         RID rid;
+        vector<RID> deleted;
         BTLeafPage *leafPage = (BTLeafPage *)page;
-        BTIndexPage *firstPage = (BTIndexPage *) first;
-        BTIndexPage *secondPage = (BTIndexPage *) second;
+        BTIndexPage *parentPage = (BTIndexPage *) first;
+        BTLeafPage *right = (BTLeafPage *)second;
         int i=0;
         void *key;
         RID dataRID;
-        Status getStatus =leafPage->get_first(rid,key,dataRID);
-        int recLen;
+        leafPage->get_first(rid,key,dataRID);
         while(i<firstCount)
         {
-            RID newRid;
+            leafPage->get_next(rid,key,dataRID);
+            i++;
+        }
+        PageId leftPageId = leafPage->page_no();
+        PageId  rightPageId = right->page_no();
+        leafPage->get_first(rid,key,dataRID);
+        char *middleRec1,*middleRec2;
+        int len1,len2;
+        middleRec1 = create_key_index_record(key,leftPageId,len1);
+        middleRec2 = create_key_index_record(key,rightPageId,len2);
+        parentPage->insertRecord(headerPage->keyType,middleRec1,len1,rid);
+        parentPage->insertRecord(headerPage->keyType,middleRec2,len2,rid);
+        i=0;
+        while(i < secondCount)
+        {
+            leafPage->get_next(rid,key,dataRID);
+            RID newRID;
+            int recLen;
             char *rec = create_key_data_record(key,dataRID,recLen);
-            firstPage->insertRecord(headerPage->keyType,rec,recLen,newRid);
-            leafPage->get_next(rid,key,dataRID);
+            right->insertRecord(headerPage->keyType,rec,recLen,newRID);
+            deleted.push_back(rid);
             i++;
         }
-        char *middleRecord;
-        leafPage->get_next(rid,key,dataRID);
-        PageId first = firstPage->page_no();
-        middleRecord = create_key_index_record(key,first,recLen);
-        int middleLength = recLen,middleDataRecordLength;
-        char *middleDataRecord = create_key_data_record(key,dataRID,middleDataRecordLength);
-        RID temp;
-        firstPage->insertRecord(headerPage->keyType,middleDataRecord,middleDataRecordLength,temp);
-        i =0;
-        while (i<secondCount)
-        {
-            RID newRid;
-            char *rec= create_key_data_record(key,dataRID,recLen);
-            secondPage->insertRecord(headerPage->keyType,rec,recLen,newRid);
-            leafPage->get_next(rid,key,dataRID);
-            i++;
-        }
-
-
-        //delete all records in node to be split and add the middle record
-        Status status = leafPage->get_first(rid,key,dataRID);
-        while (status == OK)
-        {
+        for(i=0;i<deleted.size();i++)
             leafPage->deleteRecord(rid);
-            status = leafPage->get_next(rid,key,dataRID);
-        }
-        leafPage->insertRecord(headerPage->keyType,middleRecord,middleLength,rid);
+
     }
     else //splitting a non-leaf page
     {
         BTIndexPage *indexPage = (BTIndexPage *)page;
         BTIndexPage *firstPage = (BTIndexPage *) first;
         BTIndexPage *secondPage = (BTIndexPage *) second;
+
+
     }
 }
 
