@@ -108,7 +108,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
 
   PageId rootId = headerPage->pageId;
 
-  if(headerPage->pageId == -1)
+  if(headerPage->pageId == -1) //empty tree, no records
   {
       Page *page;
       PageId pgId;
@@ -125,7 +125,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
   {
       Page *rootPage;
       MINIBASE_BM->pinPage(headerPage->pageId,rootPage,false);
-      if(headerPage->numLevels==0)
+      if(headerPage->numLevels==0) //only root, one leaf
       {
           BTLeafPage *page = (BTLeafPage *)rootPage;
           int recLen;
@@ -145,11 +145,15 @@ Status BTreeFile::insert(const void *key, const RID rid) {
           }
           else //split root page
           {
-              BTIndexPage *page;
+              BTLeafPage *first,*second;
+              PageId firstId,secondId;
+              MINIBASE_BM->newPage(firstId,(Page *)first,1);
+              MINIBASE_BM->newPage(secondId,(Page *)second,1);
+              Status status = split_page(page,first,second,LEAF);
 
           }
       }
-      else
+      else // root is an Index page
       {
 
       }
@@ -168,7 +172,123 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key) {
   return NULL;
 }
 
-int keysize(){
+int BTreeFile::keysize(){
   // put your code here
-  return 0;
+  return headerPage->keyLength;
+}
+
+Status BTreeFile::split_page(SortedPage *page, SortedPage *first,SortedPage *second,nodetype type)
+{
+    int recordCount = page->numberOfRecords();
+    int firstCount,secondCount;
+    if(recordCount%2==0)
+    {
+        firstCount = recordCount/2;
+        secondCount = recordCount/2 - 1;
+    }
+    else
+    {
+        firstCount = secondCount = recordCount/2;
+    }
+
+    if(type == LEAF) // splitting a leaf page
+    {
+        RID rid;
+        BTLeafPage *leafPage = (BTLeafPage *)page;
+        BTIndexPage *firstPage = (BTIndexPage *) first;
+        BTIndexPage *secondPage = (BTIndexPage *) second;
+        int i=0;
+        void *key;
+        RID dataRID;
+        Status getStatus =leafPage->get_first(rid,key,dataRID);
+        int recLen;
+        while(i<firstCount)
+        {
+            RID newRid;
+            char *rec = create_key_data_record(key,dataRID,recLen);
+            firstPage->insertRecord(headerPage->keyType,rec,recLen,newRid);
+            leafPage->get_next(rid,key,dataRID);
+            i++;
+        }
+        char *middleRecord;
+        leafPage->get_next(rid,key,dataRID);
+        PageId first = firstPage->page_no();
+        middleRecord = create_key_index_record(key,first,recLen);
+        int middleLength = recLen,middleDataRecordLength;
+        char *middleDataRecord = create_key_data_record(key,dataRID,middleDataRecordLength);
+        RID temp;
+        firstPage->insertRecord(headerPage->keyType,middleDataRecord,middleDataRecordLength,temp);
+        i =0;
+        while (i<secondCount)
+        {
+            RID newRid;
+            char *rec= create_key_data_record(key,dataRID,recLen);
+            secondPage->insertRecord(headerPage->keyType,rec,recLen,newRid);
+            leafPage->get_next(rid,key,dataRID);
+            i++;
+        }
+
+
+        //delete all records in node to be split and add the middle record
+        Status status = leafPage->get_first(rid,key,dataRID);
+        while (status == OK)
+        {
+            leafPage->deleteRecord(rid);
+            status = leafPage->get_next(rid,key,dataRID);
+        }
+        leafPage->insertRecord(headerPage->keyType,middleRecord,middleLength,rid);
+    }
+    else //splitting a non-leaf page
+    {
+        BTIndexPage *indexPage = (BTIndexPage *)page;
+        BTIndexPage *firstPage = (BTIndexPage *) first;
+        BTIndexPage *secondPage = (BTIndexPage *) second;
+    }
+}
+
+char* BTreeFile::create_key_data_record(void *key, RID dataRId,int& recLen)
+{
+    if(headerPage->keyType==attrInteger){
+        int recordLength = sizeof(int) + sizeof(dataRId);
+        char *record = new char[recordLength];
+        int *k = (int *)key;
+        recLen = recordLength;
+        memcpy(record,k,sizeof(int));
+
+
+        memcpy(record+ sizeof(int),(char *)&dataRId,sizeof(RID));
+        return record;
+    }
+    else
+    {
+        char *k = (char *)key;
+        int recordLength = strlen(k)+sizeof(RID);
+        recLen = recordLength;
+        char *record = new char[recordLength];
+        memcpy(record,k,strlen(k));
+        memcpy(record+strlen(k),(char *)&dataRId,sizeof(RID));
+        return record;
+    }
+}
+
+char* BTreeFile::create_key_index_record(void *key, PageId pageNum, int &recLen)
+{
+    if(headerPage->keyType == attrInteger)
+    {
+        int *k = (int *)key;
+        recLen = sizeof(int) + sizeof(PageId);
+        char *rec = new char[recLen];
+        memcpy(rec,k,sizeof(int));
+        memcpy(rec+sizeof(int),(char *)&pageNum,sizeof(PageId));
+        return rec;
+    }
+    else
+    {
+        char *k = (char *)key;
+        recLen = strlen(k) + sizeof(PageId);
+        char *rec = new char[recLen];
+        memcpy(rec,k,strlen(k));
+        memcpy(rec+strlen(k),(char *)&pageNum,sizeof(PageId));
+        return rec;
+    }
 }

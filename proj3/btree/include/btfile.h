@@ -70,8 +70,9 @@ class BTreeFile: public IndexFile
     PageId headerPageId;
     string fileName;
     vector<BTLeafPage> leafPages;
-    Status split_page(SortedPage page,vector<char *>& firstPageRecords,vector<char *>& secondPageRecords);
-
+    Status split_page(SortedPage *page,SortedPage *left, SortedPage *right,nodetype type);
+    char* create_key_data_record(void *key,RID dataRId,int &recLen);
+    char* create_key_index_record(void *key,PageId pageNum,int &recLen);
 };
 
 #endif
