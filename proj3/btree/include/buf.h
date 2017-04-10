@@ -9,8 +9,10 @@
 #include "db.h"
 #include "page.h"
 #include "new_error.h"
+#include <queue>
+#include <stack>
 
-#define NUMBUF 20   
+#define NUMBUF 20
 // Default number of frames, artifically small number for ease of debugging.
 
 #define HTSIZE 7
@@ -21,22 +23,38 @@
 /*******************ALL BELOW are purely local to buffer Manager********/
 
 // You could add more enums for internal errors in the buffer manager.
-enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR, 
+enum bufErrCodes  {HASHMEMORY, HASHDUPLICATEINSERT, HASHREMOVEERROR, HASHNOTFOUND, QMEMORYERROR, QEMPTY, INTERNALERROR,
 			BUFFERFULL, BUFMGRMEMORYERROR, BUFFERPAGENOTFOUND, BUFFERPAGENOTPINNED, BUFFERPAGEPINNED};
 
 class Replacer; // may not be necessary as described below in the constructor
+typedef struct{
+    PageId pageNumber;
+    int pin_count;
+    bool dirty;
+}Descriptor;
 
+typedef  struct HashEntry{
+    PageId pageNumber;
+    int frameNumber;
+    HashEntry *next;
+};
+
+class PageReplacer;
 class BufMgr {
 
-private: 
+private:
    unsigned int    numBuffers;
-   // fill in this area
+    int hash(int);
+    PageReplacer *replacer;
+    Descriptor *descriptors;
+    HashEntry **hashTable;
+
+    // fill in this area
 public:
     Page* bufPool; // The actual buffer pool
-
-    BufMgr (int numbuf, Replacer *replacer = 0); 
+    BufMgr (int numbuf, Replacer *replacer = 0);
    	// Initializes a buffer manager managing "numbuf" buffers.
-	// Disregard the "replacer" parameter for now. In the full 
+	// Disregard the "replacer" parameter for now. In the full
   	// implementation of minibase, it is a pointer to an object
 	// representing one of several buffer pool replacement schemes.
 
@@ -55,15 +73,15 @@ public:
         // put it in a group of replacement candidates.
         // if pincount=0 before this call, return error.
 
-    Status newPage(PageId& firstPageId, Page*& firstpage, int howmany=1); 
-        // call DB object to allocate a run of new pages and 
+    Status newPage(PageId& firstPageId, Page*& firstpage, int howmany=1);
+        // call DB object to allocate a run of new pages and
         // find a frame in the buffer pool for the first page
-        // and pin it. If buffer is full, ask DB to deallocate 
+        // and pin it. If buffer is full, ask DB to deallocate
         // all these pages and return error
 
-    Status freePage(PageId globalPageId); 
+    Status freePage(PageId globalPageId);
         // User should call this method if it needs to delete a page
-        // this routine will call DB to deallocate the page 
+        // this routine will call DB to deallocate the page
 
     Status flushPage(PageId pageid);
         // Used to flush a particular page of the buffer pool to disk
@@ -80,12 +98,25 @@ public:
     Status unpinPage(PageId globalPageId_in_a_DB, int dirty, const char *filename);
 	// Should be equivalent to the above unpinPage()
 	// Necessary for backward compatibility with project 1
-    
+
     unsigned int getNumBuffers() const { return numBuffers; }
 	// Get number of buffers
 
     unsigned int getNumUnpinnedBuffers();
 	// Get number of unpinned buffers
+};
+
+class PageReplacer
+{
+private:
+        queue<PageId> LRUQueue;
+        stack<PageId> MRUStack;
+
+public:
+    PageReplacer();
+    void addtoLRUQueue(PageId);
+    void addtoMRUStack(PageId);
+    PageId getVictim();
 };
 
 #endif

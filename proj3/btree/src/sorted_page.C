@@ -67,8 +67,8 @@ Status SortedPage::insertRecord (AttrType key_type,
 {
   // put your code here
 
-  if(key_type !=type)
-    return DONE;
+//  if(key_type !=type)
+ //   return DONE;
   Status status = HFPage::insertRecord(recPtr,recLen,rid);
 
   if(status == OK && this->slotCnt==0)

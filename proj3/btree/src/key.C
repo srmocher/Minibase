@@ -99,7 +99,7 @@ int get_key_data_length(const void *key, const AttrType key_type,
         else if(ndtype == INDEX)
             return strlen(str) + sizeof(PageId);
     } else{
-        int num = (int)key;
+        int *num = (int *)key;
         if(ndtype == LEAF)
             return sizeof(int)+sizeof(RID);
         else if(ndtype == INDEX)
