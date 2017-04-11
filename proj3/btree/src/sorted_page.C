@@ -18,21 +18,20 @@ class SlotData
 {
    public:
     char *stringData;
-    int intData;
+    int *intData;
     AttrType type;
     int slotNo;
     int length;
     int offset;
-    SlotData();
+    SlotData(){intData = new int[1];}
     bool operator<(const SlotData &other) const{
          if(type == attrString)
           return strcmp(stringData,other.stringData) < 0;
          else
-             return intData < other.intData;
+             return *intData < *(other.intData);
     }
 };
 
-SlotData::SlotData() {}
 
 
 const char* SortedPage::Errors[SortedPage::NR_ERRORS] = {
@@ -71,11 +70,14 @@ Status SortedPage::insertRecord (AttrType key_type,
  //   return DONE;
   Status status = HFPage::insertRecord(recPtr,recLen,rid);
 
-  if(status == OK && this->slotCnt==0)
-    return OK;
+//  if(status == OK && this->slotCnt==0)
+  //  return OK;
 
+    if(status!=OK)
+        return status;
   slot_t *current = this->slot;
   int i=0;
+
   vector<SlotData> slotsInfo;
 
   while(i <= this->slotCnt)
@@ -83,7 +85,7 @@ Status SortedPage::insertRecord (AttrType key_type,
       SlotData slotData;
       slotData.slotNo = i;
       if(current->offset==-1){
-          current = ((slot_t *)data+i*sizeof(slot_t));
+          current = (slot_t*)(data+i*sizeof(slot_t));
           i++;
           continue;
       }
@@ -94,47 +96,66 @@ Status SortedPage::insertRecord (AttrType key_type,
       slotData.offset = offset;
       if(key_type == attrString)
       {
+          slotData.type = attrString;
         if(recLen > MAX_KEY_SIZE1)
         {
             char *rec = new char[MAX_KEY_SIZE1];
-            for(int j=0;j<MAX_KEY_SIZE1;j++)
-                rec[j] = data[offset+j];
+            memcpy(rec,data+offset,MAX_KEY_SIZE1);
             slotData.stringData = rec;
         }
         else
         {
             char *rec = new char[recLen];
-            for(int j=0;j<recLen;j++)
-                rec[j] = data[offset+j];
+            memcpy(rec,data+offset,recLen);
             slotData.stringData = rec;
         }
       }
       else
       {
-          slotData.intData = data[offset];
+          slotData.type = attrInteger;
+         memcpy(slotData.intData,data+offset,sizeof(int));
       }
       slotsInfo.push_back(slotData);
-      current = ((slot_t *)data+i*sizeof(slot_t));
+      current = (slot_t*)(data+i*sizeof(slot_t));
       i++;
   }
   std::sort(slotsInfo.begin(),slotsInfo.end());
-  current =this->slot;
+//    cout<<"after sorting"<<endl;
+//    for(int i=0;i<slotsInfo.size();i++)
+//    {
+//        cout<<slotsInfo[i].offset<<endl;
+//    }
+  //printing sorted data for verification
 
+  current =this->slot;
+  i=0;
   int j=0;
-    i=0;
-   while (i <= this->slotCnt)
-   {
-       if(current->offset==-1){
-           current = ((slot_t *)data+i*sizeof(slot_t));
-           i++;
-           continue;
-       }
-       current->offset = slotsInfo[j].offset;
-       current->length = slotsInfo[j].length;
-       j++;
-       i++;
-       current = ((slot_t *)data+i*sizeof(slot_t));
-   }
+  while(j<=slotCnt)
+  {
+      if(current->offset == -1)
+      {
+          j++;
+          current = (slot_t*)(data+j*sizeof(slot_t));
+          continue;
+      }
+      current->offset = slotsInfo.at(i).offset;
+      current->length = slotsInfo.at(i).length;
+      i++;
+      current = (slot_t*)(data+j*sizeof(slot_t));
+      j++;
+  }
+//    current = this->slot;
+//    cout<<"after insertion"<<endl;
+//    i =0;
+//    while(i <= this->slotCnt)
+//    {
+//        int offset = current->offset;
+//        int *k = new int[1];
+//        memcpy(k,data+offset,sizeof(int));
+//        cout << *k<<endl;
+//        current =  (slot_t*)(data+i*sizeof(slot_t));
+//        i++;
+//    }
   return OK;
 }
 

@@ -169,7 +169,7 @@ Status BTLeafPage::get_first (RID& rid,
     int i=0;
     while(currSlot->offset==-1)
     {
-        currSlot = (slot_t *)data+i*sizeof(slot_t);
+        currSlot = (slot_t*)(data+i*sizeof(slot_t));
         i++;
     }
     rid.slotNo = i;
@@ -179,27 +179,23 @@ Status BTLeafPage::get_first (RID& rid,
     int length = currSlot->length;
 
     char *record = new char[length];
+    memcpy(record,data+offset,length);
 
-    for(int i=0;i<length;i++)
-        record[i] = data[offset+i];
-
-    if(type == attrInteger){
-        int *num = new int[1];
-        memcpy(num,record,sizeof(int));
-        key = (void *)num;
-        RID *tempdata = new RID[1];
-        memcpy(tempdata,record+sizeof(int),length-sizeof(int));
-        dataRid = tempdata[0];
+    int keySize = length - sizeof(RID);
+    if(keySize == sizeof(int))
+    {
+     //   int *k = new int[1];
+        memcpy(key,data+offset,sizeof(int));
+      //  key = (void *)k;
+        memcpy(&dataRid,data+offset+keySize,sizeof(RID));
     }
-    else if(type == attrString){
-        char *k = new char[MAX_KEY_SIZE1];
-        memcpy(k,record,MAX_KEY_SIZE1);
+    else
+    {
+        char *k = new char[keySize];
+        memcpy(k,data+offset,keySize);
         key = (void *)k;
-        RID *tempdata = new RID[1];
-        memcpy(tempdata,record+MAX_KEY_SIZE1,length-MAX_KEY_SIZE1);
-        dataRid = tempdata[0];
-    }
-    // put your code here
+        memcpy(&dataRid,data+offset+keySize,sizeof(RID));
+    }  // put your code here
   return OK;
 }
 
@@ -208,51 +204,30 @@ Status BTLeafPage::get_next (RID& rid,
                              RID & dataRid)
 {
     RID nextRid;
-    Status status = HFPage::nextRecord(rid,nextRid);
-    if(status!=OK)
+    int currSlotNo = rid.slotNo;
+    int i=0;
+    slot_t *temp = this->slot;
+    if(currSlotNo+1 > this->slotCnt)
         return NOMORERECS;
-    int slotNo = nextRid.slotNo;
-    int length,offset;
-    if(slotNo == 0)
-    {
-        slot_t *current = this->slot;
-        length = current->length;
-        offset = current->offset;
-    }
-    else
-    {
-        int i=0;
-        slot_t *current = this->slot;
-        while(true)
-        {
-            if(i==slotNo)
-                break;
-            current = (slot_t *)data + i*sizeof(slot_t);
-            i++;
-        }
-        length = current->length;
-        offset = current->offset;
-    }
-
-    char *record = new char[length];
-    memcpy(record,data+offset,length);
-
-    if(type == attrInteger){
-        int *num = new int[1];
-        memcpy(num,record,sizeof(int));
-        key = (void *)num;
-        RID *tempdata = new RID[1];
-        memcpy(tempdata,record+sizeof(int),length-sizeof(int));
-        dataRid = tempdata[0];
-    }
-    else if(type == attrString){
-        char *k = new char[MAX_KEY_SIZE1];
-        memcpy(k,record,MAX_KEY_SIZE1);
-        key = (void *)k;
-        RID *tempdata = new RID[1];
-        memcpy(tempdata,record+MAX_KEY_SIZE1,length-MAX_KEY_SIZE1);
-        dataRid = tempdata[0];
-    }
+    slot_t *nextSlot = (slot_t*)(data + currSlotNo*sizeof(slot_t));
+    nextRid.pageNo = rid.pageNo;
+    nextRid.slotNo = currSlotNo+1;
     rid = nextRid;
+    int offset = nextSlot->offset;
+    int length = nextSlot->length;
+
+    int keyLength = length - sizeof(RID);
+    if(keyLength == sizeof(int))
+    {
+      //  key = (void *)(new int[1]);
+       memcpy(key,data+offset,sizeof(int));
+       memcpy(&dataRid,data+offset+sizeof(int),sizeof(RID));
+    } else
+    {
+        char *k = new char[MAX_KEY_SIZE1];
+        memcpy(k,data+offset,MAX_KEY_SIZE1);
+        key = (void *)k;
+        memcpy(&dataRid,data+offset+MAX_KEY_SIZE1,sizeof(RID));
+    }
     return OK;
 }
