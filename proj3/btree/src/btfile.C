@@ -8,6 +8,7 @@
 #include <btfile.h>
 #include "minirel.h"
 #include "buf.h"
+#include <algorithm>
 #include "db.h"
 #include "new_error.h"
 #include "btfile.h"
@@ -110,7 +111,30 @@ Status BTreeFile::destroyFile ()
 
 Status BTreeFile::insert(const void *key, const RID rid) {
 
-
+    if(headerPage->keyType == attrInteger){
+        int *val = (int *)key;
+        intValues.push_back(*val);
+        auto max = std::max_element(intValues.begin(),intValues.end());
+        auto min = std::min_element(intValues.begin(),intValues.end());
+        int maxVal = *max;
+        int minVal = *min;
+        headerPage->maxKeyVal = new int[1];
+        headerPage->minKeyVal = new int[1];
+        memcpy(headerPage->maxKeyVal,&maxVal,sizeof(int));
+        memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
+    }
+    else
+    {
+        char *k = (char *)key;
+        string keyVal = k;
+        stringValues.push_back(keyVal);
+        auto max = std::max_element(stringValues.begin(),stringValues.end());
+        auto min = std::min_element(stringValues.begin(),stringValues.end());
+        string maxVal = *max;
+        string minVal = *min;
+        headerPage->maxKeyVal = &maxVal;
+        headerPage->minKeyVal = &minVal;
+    }
    if(headerPage->pageId ==-1)
    {
        PageId  rootId;
@@ -300,6 +324,30 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
 
 Status BTreeFile::Delete(const void *key, const RID rid) {
   // put your code here
+
+    if(headerPage->keyType == attrInteger){
+        int *val = (int *)key;
+        intValues.erase(std::remove(intValues.begin(),intValues.end(),*val),intValues.end());
+        auto max = std::max_element(intValues.begin(),intValues.end());
+        auto min = std::min_element(intValues.begin(),intValues.end());
+        int maxVal = *max;
+        int minVal = *min;
+
+        headerPage->maxKeyVal = new int[1];
+        headerPage->minKeyVal = new int[1];
+        memcpy(headerPage->maxKeyVal,&maxVal,sizeof(int));
+        memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
+    } else{
+        char *val = (char *)key;
+        string str = val;
+        stringValues.erase(std::remove(stringValues.begin(),stringValues.end(),str),stringValues.end());
+        auto max = std::max_element(stringValues.begin(),stringValues.end());
+        auto min = std::min_element(stringValues.begin(),stringValues.end());
+        string maxVal = *max;
+        string minVal = *min;
+        headerPage->maxKeyVal = &maxVal;
+        headerPage->minKeyVal = &minVal;
+    }
     PageId rootId = headerPage->pageId;
     Page *page;
     MINIBASE_BM->pinPage(rootId,page,0,fileName.c_str());
@@ -586,3 +634,26 @@ PageId BTreeFile::get_page_no(BTIndexPage *page,const void *key,AttrType type){
     return prevPageId;
 }
 
+void* BTreeFile::getMaxVal() {
+    if(headerPage->keyType == attrInteger){
+        return headerPage->maxKeyVal;
+    }
+    else{
+        string *val = (string *)headerPage->maxKeyVal;
+        const char *chr = val->c_str();
+        void *max = (void *)chr;
+        return max;
+    }
+}
+
+void* BTreeFile::getMinVal() {
+    if(headerPage->keyType == attrInteger){
+        return headerPage->minKeyVal;
+    }
+    else{
+        string *val = (string *)headerPage->minKeyVal;
+        const char *chr = val->c_str();
+        void *max = (void *)chr;
+        return max;
+    }
+}

@@ -59,6 +59,8 @@ class BTreeFile: public IndexFile
     int keysize();
     PageId get_root(){return headerPage->pageId;}
     string get_fileName(){return this->fileName;}
+    void* getMaxVal();
+    void* getMinVal();
   private:
     typedef struct {
         PageId pageId;
@@ -72,8 +74,8 @@ class BTreeFile: public IndexFile
     HeaderPage *headerPage;
     PageId headerPageId;
     string fileName;
-    vector<void *> values;
-
+    vector<int> intValues;
+    vector<string> stringValues;
     vector<BTLeafPage> leafPages;
     Status split_page(BTIndexPage *page,BTIndexPage *left);
     Status split_page(BTLeafPage *page,BTLeafPage *other);
@@ -87,7 +89,6 @@ class BTreeFile: public IndexFile
     short get_page_type(PageId);
     PageId get_page_no(BTIndexPage *page,const void *key,AttrType type);
     HeaderPage* get_header_page();
-
 };
 
 #endif

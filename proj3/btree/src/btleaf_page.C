@@ -211,18 +211,21 @@ Status BTLeafPage::get_next (RID& rid,
         return NOMORERECS;
     slot_t *nextSlot = (slot_t*)(data + currSlotNo*sizeof(slot_t));
     if(nextSlot->offset==-1) {
-       // while (nextSlot->offset == -1 && currSlotNo <= this->slotCnt) {
+     //  while (nextSlot->offset == -1 && currSlotNo <= this->slotCnt) {
+
                nextSlot = (slot_t*)(data + (currSlotNo+1)*sizeof(slot_t));
                  currSlotNo++;
-         //}
-        if(currSlotNo > this->slotCnt)
-            return NOMORERECS;
+       //  }
+        //if(currSlotNo > this->slotCnt)
+          //  return NOMORERECS;
+        //currSlotNo--;
     }
     nextRid.pageNo = rid.pageNo;
     nextRid.slotNo = currSlotNo+1;
     rid = nextRid;
     int offset = nextSlot->offset;
     int length = nextSlot->length;
+
 
     int keyLength = length - sizeof(RID);
     if(keyLength == sizeof(int))

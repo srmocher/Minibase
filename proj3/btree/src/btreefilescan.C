@@ -107,6 +107,21 @@ void BTreeFileScan::traverseToLowValLeaf() {
   {
       invalidRange=true;
   }
+
+   void *max = file->getMaxVal();
+    void *min = file->getMinVal();
+    if(lowVal!=NULL && keyCompare(lowVal,max,type)>0)
+    {
+        cout<<"Low val is "<<(*(int *)lowVal)<<endl;
+        cout<<"Max val is "<<(*(int *)max)<<endl;
+        invalidRange=true;
+    }
+    if(highVal!=NULL && keyCompare(highVal,min,type)<0)
+    {
+        cout<<"High val is "<<(*(int *)highVal)<<endl;
+        cout<<"Max val is "<<(*(int *)min)<<endl;
+        invalidRange=true;
+    }
   if(sortedPage->get_type()==INDEX)
   {
       BTIndexPage *rootPage = (BTIndexPage *)sortedPage;
@@ -165,6 +180,7 @@ void BTreeFileScan::traverseToLowValLeaf() {
               status = currentPage->get_next(temp,currentKey,currentDataRID);
           }
           else {
+              cout<<"current key "<<(*(int *)currentKey)<<endl;
               firstRecordScanned=false;
               break;
           }
@@ -182,7 +198,7 @@ void BTreeFileScan::traverseToLowValLeaf() {
               MINIBASE_BM->unpinPage(pageId,true,file->get_fileName().c_str());
               MINIBASE_BM->pinPage(nextPageId,pg,0,file->get_fileName().c_str());
               currentPage = (BTLeafPage *)pg;
-              currentPage->get_first(temp,currentKey,currentDataRID);
+              status = currentPage->get_first(temp,currentKey,currentDataRID);
               //firstRecordScanned=false;
           }
       }
