@@ -32,12 +32,14 @@ public:
     {
         this->file=f;
         fullIndexScan =false;
+        firstRecordScanned = false;
     }
 private:
 
 
     const void *lowVal;
     const void *highVal;
+    bool firstRecordScanned;
     int keySize;
     AttrType type;
     PageId  rootId;
@@ -45,7 +47,7 @@ private:
     void traverseToLowValLeaf();
     bool fullIndexScan;
     BTLeafPage *currentPage;
-    RID currentRID;
+    RID currentRID,currentDataRID;
     void *currentKey;
 
 };
