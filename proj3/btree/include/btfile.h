@@ -57,7 +57,8 @@ class BTreeFile: public IndexFile
     //              range scan from lo_key to hi_key
 
     int keysize();
-    
+    PageId get_root(){return headerPage->pageId;}
+    string get_fileName(){return this->fileName;}
   private:
     typedef struct {
         PageId pageId;
@@ -70,11 +71,19 @@ class BTreeFile: public IndexFile
     PageId headerPageId;
     string fileName;
     vector<BTLeafPage> leafPages;
-    Status split_page(BTIndexPage *page,BTIndexPage *left,BTIndexPage *parent);
+    Status split_page(BTIndexPage *page,BTIndexPage *left);
     Status split_page(BTLeafPage *page,BTLeafPage *other);
     char* create_key_data_record(const void *key,RID dataRId,int &recLen);
     char* create_key_index_record(const void *key,PageId pageNum,int &recLen);
-    void insert(PageId pageNum,const void *key,RID rid,nodetype type,char* childEntry);
+    void insert(PageId &pageNum,const void *key,RID rid,KeyDataEntry *&child,PageId& splitPageId);
+  //  Status insertRecursive(const void *key,const RID rid, char *upEntry,int *upSize,PageId currPageId);
+    Status create_parent(BTIndexPage *page,char *left,char *right);
+    bool isRoot(PageId);
+    Status get_leaf_page_for_insertion(const void *key, BTIndexPage *parent,PageId &insertionPage,void *k);
+    short get_page_type(PageId);
+    PageId get_page_no(BTIndexPage *page,const void *key,AttrType type);
+    HeaderPage* get_header_page();
+
 };
 
 #endif

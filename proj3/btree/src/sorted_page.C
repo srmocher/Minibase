@@ -79,16 +79,13 @@ Status SortedPage::insertRecord (AttrType key_type,
   int i=0;
 
   vector<SlotData> slotsInfo;
-
-  while(i <= this->slotCnt)
+  int j=0;
+//    cout<<"Num records:"<<this->numberOfRecords()<<endl;
+  while(i < this->numberOfRecords())
   {
       SlotData slotData;
       slotData.slotNo = i;
-      if(current->offset==-1){
-          current = (slot_t*)(data+i*sizeof(slot_t));
-          i++;
-          continue;
-      }
+
 
       int offset = current->offset;
       int length = current->length;
@@ -114,12 +111,20 @@ Status SortedPage::insertRecord (AttrType key_type,
       {
           slotData.type = attrInteger;
          memcpy(slotData.intData,data+offset,sizeof(int));
+
       }
       slotsInfo.push_back(slotData);
-      current = (slot_t*)(data+i*sizeof(slot_t));
+      current = (slot_t*)(data+j*sizeof(slot_t));
+
       i++;
+      j++;
   }
+  rid.slotNo = this->slotCnt;
   std::sort(slotsInfo.begin(),slotsInfo.end());
+   // if(*(int *)key)
+  //  if(slotsInfo.size()>65){
+       // cout<<slotsInfo.size()<<endl;
+    //}
 //    cout<<"after sorting"<<endl;
 //    for(int i=0;i<slotsInfo.size();i++)
 //    {
@@ -129,21 +134,18 @@ Status SortedPage::insertRecord (AttrType key_type,
 
   current =this->slot;
   i=0;
-  int j=0;
-  while(j<=slotCnt)
+ j=0;
+  while(i<slotsInfo.size())
   {
-      if(current->offset == -1)
-      {
-          j++;
-          current = (slot_t*)(data+j*sizeof(slot_t));
-          continue;
-      }
+        if(current->offset==-1)
+            break;
       current->offset = slotsInfo.at(i).offset;
-      current->length = slotsInfo.at(i).length;
+     current->length = slotsInfo.at(i).length;
       i++;
       current = (slot_t*)(data+j*sizeof(slot_t));
       j++;
   }
+
 //    current = this->slot;
 //    cout<<"after insertion"<<endl;
 //    i =0;
@@ -170,12 +172,16 @@ Status SortedPage::insertRecord (AttrType key_type,
 Status SortedPage::deleteRecord (const RID& rid)
 {
   // put your code here
-    Status status =HFPage::deleteRecord(rid);
-    if(status!=OK)
-        return DONE;
+  //   this->usedPtr = MAX_SPACE - DPFIXED;
+//    this->slotCnt--;
+//  return status;
+   Status status = HFPage::deleteRecord(rid);
+   // this->slotCnt--;
+   // this->freeSpace = this->freeSpace+ sizeof(slot_t);
 
+   // this->slotCnt--;
 
-  return status;
+    return OK;
 }
 
 int SortedPage::numberOfRecords()
@@ -188,7 +194,9 @@ int SortedPage::numberOfRecords()
   {
       if(current->offset!=-1)
           numRecords++;
-      current = (slot_t*)data + i*sizeof(slot_t);
+      else
+          break;
+      current = (slot_t*)(data + i*sizeof(slot_t));
       i++;
   }
   return numRecords;

@@ -51,7 +51,26 @@ void make_entry(KeyDataEntry *target,
 {
   // put your code here
 
-
+    if(ndtype == INDEX)
+    {
+        if(key_type == attrInteger)
+        {
+            target = new KeyDataEntry();
+            memcpy(&target->key.intkey,key,sizeof(int));
+            memcpy(&target->data.pageNo,&data.pageNo,sizeof(PageId));
+            *pentry_len = sizeof(int) + sizeof(PageId);
+        }
+    }
+    else if(ndtype == LEAF)
+    {
+        if(key_type == attrInteger)
+        {
+            target = new KeyDataEntry();
+            memcpy(&target->key.intkey,key,sizeof(int));
+            memcpy((&target->data.rid),&data.rid,sizeof(RID));
+            *pentry_len = sizeof(int) + sizeof(RID);
+        }
+    }
   return;
 }
 
@@ -65,6 +84,22 @@ void get_key_data(void *targetkey, Datatype *targetdata,
                   KeyDataEntry *psource, int entry_len, nodetype ndtype)
 {
    // put your code here
+    if(ndtype == INDEX)
+    {
+        if(entry_len == sizeof(int)+sizeof(PageId))
+        {
+            memcpy(targetkey,&psource->key.intkey,sizeof(int));
+            memcpy(&targetdata->pageNo,&psource->data.pageNo,sizeof(PageId));
+        }
+    }
+    else if(ndtype == LEAF)
+    {
+        if(entry_len == sizeof(int) + sizeof(PageId))
+        {
+            memcpy(targetkey,&psource->key.intkey,sizeof(int));
+            memcpy(&targetdata->rid,&psource->data.rid,sizeof(RID));
+        }
+    }
    return;
 }
 

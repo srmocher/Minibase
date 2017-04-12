@@ -201,191 +201,192 @@ Status BTreeFile::destroyFile ()
 
 Status BTreeFile::insert(const void *key, const RID rid) {
 
-    PageId pageId = headerPage->pageId;
-    if(pageId==-1)
-    {
-        BTLeafPage *root;
-        Page *pg;
-        MINIBASE_BM->newPage(pageId,pg,1);
-        root = (BTLeafPage *)pg;
-        root->init(pageId);
-        headerPage->pageId = pageId;
-        MINIBASE_BM->unpinPage(pageId,0,fileName.c_str());
-        char *childEntry = NULL;
-        insert(headerPage->pageId,key,rid,LEAF,childEntry);
-        if(childEntry!=NULL)
-        {
-            BTIndexPage *parent;
-            PageId parentId;
-            Page *parent_page;
-            MINIBASE_BM->newPage(parentId,parent_page,1);
-            parent = (BTIndexPage *)parent_page;
-
-        }
-    }
+   if(headerPage->pageId ==-1)
+   {
+       PageId  rootId;
+       Page *pg;
+       MINIBASE_BM->newPage(rootId,pg,1);
+       BTLeafPage *root = (BTLeafPage *)pg;
+       root->init(rootId);
+       headerPage->pageId = rootId;
+       MINIBASE_BM->unpinPage(rootId,true,fileName.c_str());
+       KeyDataEntry *child=NULL;
+       PageId splitPageId;
+       insert(rootId,key,rid,child,splitPageId);
+       if(child!=NULL)
+       {
+            cout<<"test"<<endl;
+       }
+   }
     else
-    {
-        if(headerPage->numLevels>0)
-        {
-            Page *pg;
-            char *childEntry = NULL;
-           // MINIBASE_BM->pinPage(pageId,pg,0,fileName.c_str());
-            insert(pageId,key,rid,INDEX,childEntry);
-            if(childEntry!=NULL)//split occurred
-            {
-
-            }
-        }
-        else
-        {
-            char *childEntry = NULL;
-            insert(pageId,key,rid,LEAF,childEntry);
-            if(childEntry!=NULL) //split occurred
-            {
-
-            }
-        }
-
-    }
+   {
+       PageId pgId = headerPage->pageId;
+       KeyDataEntry *entry=NULL;
+       PageId splitPageId=-1;
+       insert(pgId,key,rid,entry,splitPageId);
+       if(entry!=NULL && splitPageId==headerPage->pageId)
+       {
+           Page *rootPage;
+           PageId rootId;
+           MINIBASE_BM->newPage(rootId,rootPage,1);
+           BTIndexPage *root = (BTIndexPage *)rootPage;
+           root->init(rootId);
+           RID temp;
+           cout<<"New Root PageId is "<<rootId<<endl;
+           root->setLeftLink(headerPage->pageId);
+          Status st = root->insertKey(&entry->key.intkey,headerPage->keyType,splitPageId,temp);
+           headerPage->pageId = rootId;
+           MINIBASE_BM->unpinPage(rootId,true,fileName.c_str());
+       }
+       else if(entry!=NULL && splitPageId!=headerPage->pageId)
+       {
+           Page *pg;
+           RID t;
+           MINIBASE_BM->pinPage(headerPage->pageId,pg,0,fileName.c_str());
+           BTIndexPage *root = (BTIndexPage *)pg;
+          Status status = root->insertKey(&entry->key.intkey,headerPage->keyType,entry->data.pageNo,t);
+           MINIBASE_BM->unpinPage(headerPage->pageId,true,fileName.c_str());
+       }
+   }
+    return OK;
 }
 
-void BTreeFile::insert(PageId pageId, const void *key, RID rid,nodetype type,char *child) {
+void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&childEntry,PageId& splitPageId) {
     PageId pageNum;
     void *k;
+
     RID r;
     int prevCompare = 0, compare = 0;
-    Page *pg;
-
+    SortedPage *pg;
+    Page *currPage;
+    MINIBASE_BM->pinPage(pageId,currPage,0,fileName.c_str());
+    pg = (SortedPage *)currPage;
+    short type = pg->get_type();
     if(type == INDEX)
     {
-        Status status = MINIBASE_BM->pinPage(pageId,pg,0,fileName.c_str());
-        BTIndexPage *nodepointer;
-        nodepointer = (BTIndexPage *)pg;
-         status = nodepointer->get_first(r, k, pageNum);
-        PageId foundPageId;
-        char *matchingKey;
-        int matchingLen;
-        while (status == OK) {
-            prevCompare = compare;
-            compare = keyCompare(k, key, headerPage->keyType);
-            if (compare == 0) {
-                foundPageId = pageNum;
-                matchingKey = create_key_index_record(k,foundPageId,matchingLen);
-                break;
-            }
-            if (compare * prevCompare < 0) {
-                foundPageId = pageNum;
-                matchingKey = create_key_index_record(k,foundPageId,matchingLen);
-                break;
-            }
-            status = nodepointer->get_next(r, k, pageNum);
-        }
-
-
-        insert(foundPageId,key,rid,INDEX,child);
-        if(child==NULL) {
-            MINIBASE_BM->unpinPage(nodepointer->page_no(), false, fileName.c_str());
-            return;
-        }
-        else
+        BTIndexPage *page = (BTIndexPage *)pg;
+        PageId insertionPageId = get_page_no(page,key,headerPage->keyType);
+        KeyDataEntry *newEntry = new KeyDataEntry();
+        MINIBASE_BM->unpinPage(pageId,true,fileName.c_str());
+        insert(insertionPageId,key,rid,childEntry,splitPageId);
+        if(childEntry==NULL) return;
+        if(childEntry != NULL)
         {
-            int len;
-          //  child = create_key_data_record(key,rid,len);
-            RID recordID;
-            if(nodepointer->available_space()>len)
+            if(page->available_space()>sizeof(KeyDataEntry))
             {
-                nodepointer->insertRecord(headerPage->keyType,child,len,recordID);
+                int entryLen = get_key_data_length(key,headerPage->keyType,INDEX);
+                void *k;
+                if(headerPage->keyType == attrInteger){
+                    k = new int[1];
+                }
+                Datatype *dt = new Datatype();
+                RID temp;
+                get_key_data(k,dt,childEntry,entryLen,INDEX);
+                Status st = page->insertKey(k,headerPage->keyType,dt->pageNo,temp);
+                childEntry = NULL;
                 return;
             }
-            else //split
+            else
             {
-                BTIndexPage *secondPage;
-                Page *pg;
-                PageId pgId;
-                MINIBASE_BM->newPage(pgId,pg,1);
-                secondPage = (BTIndexPage *)pg;
-                split_page(nodepointer,secondPage);
-                RID smallestRID;
-                PageId temp;
-                void *tempKey;
-                int recLen;
-                secondPage->get_first(smallestRID,tempKey,temp);
-                child = create_key_index_record(tempKey,temp,recLen);
-
-                if(nodepointer->page_no() == headerPage->pageId)
+                BTIndexPage *rightSibling;
+           //     rightSibling->setLeftLink(1);
+                PageId rightId;
+                Page *rightPg;
+                MINIBASE_BM->newPage(rightId,rightPg,1);
+                rightSibling = (BTIndexPage *)rightSibling;
+                rightSibling->init(rightId);
+                split_page(page,rightSibling);
+                void *k;
+                RID tempRID;
+                PageId rightSmallestId;
+                rightSibling->get_first(tempRID,k,rightSmallestId);
+                    childEntry = new KeyDataEntry();
+                    memcpy(&(childEntry->key.intkey),k,sizeof(int));
+                    PageId rightPageId = rightSibling->page_no();
+                    memcpy(&childEntry->data.pageNo,&rightPageId,sizeof(PageId));
+                rightSibling->deleteRecord(tempRID);
+                if(page->page_no() == headerPage->pageId)//root split
                 {
-                    BTIndexPage *newRoot;
-                    headerPage->numLevels++;
-                    PageId newPgId;
-                    Page *newPage;
-                    MINIBASE_BM->newPage(newPgId,newPage,1);
-                    newRoot = (BTIndexPage *)newPage;
-                    RID tempId;
-                    newRoot->insertRecord(headerPage->keyType,matchingKey,matchingLen,tempId);
-                    newRoot->insertRecord(headerPage->keyType,child,recLen,tempId);
-                    headerPage->pageId = newRoot->page_no();
-                    MINIBASE_BM->unpinPage(newPgId,true,fileName.c_str());
-
+                    Page *newRoot;
+                    PageId newId;
+                    MINIBASE_BM->newPage(newId,newRoot,1);
+                    BTIndexPage *root;
+                    root = (BTIndexPage *)newRoot;
+                    root->init(newId);
+                    RID temp;
+                    root->insertKey(&childEntry->key.intkey,headerPage->keyType,childEntry->data.pageNo,temp);
+                    root->setLeftLink(page->page_no());
+                    headerPage->pageId = root->page_no();
+                    MINIBASE_BM->unpinPage(newId,true,fileName.c_str());
                 }
-                MINIBASE_BM->unpinPage(pgId,true,fileName.c_str());
+                MINIBASE_BM->unpinPage(pageId,true,fileName.c_str());
+             return;
             }
         }
     }
     else // a leaf node
     {
-        int recLen;
-        char *record = create_key_data_record(key,rid,recLen);
-        BTLeafPage *leaf;
-        Page *lPage;
-        RID r;
-        Status status = MINIBASE_BM->pinPage(pageId,lPage,0,fileName.c_str());
-        leaf = (BTLeafPage *)lPage;
+      int entryLen = get_key_data_length(key,headerPage->keyType,LEAF);
+      BTLeafPage *leaf = (BTLeafPage *)pg;
+        if(leaf->available_space() > entryLen)
+        {
+            RID tempId;
+            leaf->insertRec(key,headerPage->keyType,rid,tempId);
+            cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
+            childEntry = NULL;
+            MINIBASE_BM->unpinPage(leaf->page_no(),true,fileName.c_str());
+            return;
+        }
+        else
+        {
 
-        if(leaf->available_space()>recLen)
-        {
-            leaf->insertRec(key,headerPage->keyType,rid,r);
-            child = NULL;
-           status = MINIBASE_BM->unpinPage(pageId,true,fileName.c_str());
-            return;
-        }
-        else //split leaf
-        {
-            BTLeafPage *newLeaf;
-            BTIndexPage *newParent;
-            Page *newPage,*newPt;
-            PageId newPageId,newParentId;
-            MINIBASE_BM->newPage(newPageId,newPage,1);
-        //    MINIBASE_BM->newPage(newParentId,newPt,1);
-         //   newParent = (BTIndexPage *)newPt;
-            newLeaf = (BTLeafPage *)newPage;
-            newLeaf->init(newPageId);
-            Status status =split_page(leaf,newLeaf);
-            if(status!=OK)
-                return;
-            leaf->setNextPage(newLeaf->page_no());
-            newLeaf->setPrevPage(leaf->page_no());
-            RID temprid,tempDataRID;
-            void *tempKey;
-            int rLen;
-            if(headerPage->keyType == attrInteger){
-                tempKey = (void *) new int[1];
+            BTLeafPage *rightSibling;
+            Page *rightPage;
+            PageId rightId;
+            MINIBASE_BM->newPage(rightId,rightPage,1);
+            rightSibling = (BTLeafPage *)rightPage;
+            rightSibling->init(rightId);
+            split_page(leaf,rightSibling);
+            childEntry = new KeyDataEntry();
+            void *rightKey;
+            if(headerPage->keyType==attrInteger){
+                rightKey = new int[1];
             }
-            newLeaf->get_first(temprid,tempKey,tempDataRID);
-            child = create_key_data_record(tempKey,tempDataRID,rLen);
-          //  newParent->insertKey(tempKey,headerPage->keyType,leaf->page_no(),temprid);
-           // newParent->insertKey(tempKey,headerPage->keyType,newLeaf->page_no(),temprid);
-            //if(leaf->page_no()==headerPage->pageId)
-           // {
-             //   headerPage->pageId = newParent->page_no();
+            RID rightRID,temp;
+            splitPageId = leaf->page_no();
+            rightSibling->get_first(temp,rightKey,rightRID);
+
+                memcpy(&childEntry->key.intkey, rightKey, sizeof(int));
+                PageId tempPageId = leaf->page_no();
+                memcpy(&childEntry->data.rid, &tempPageId, sizeof(RID));
             //}
-            MINIBASE_BM->unpinPage(newPageId,true,fileName.c_str());
-            MINIBASE_BM->unpinPage(pageId,true,fileName.c_str());
-            //MINIBASE_BM->unpinPage(newParentId,true,fileName.c_str());
-            return;
+         //   cout<<"Splitting leaf and the key going to parent is "<<(*(int *)rightKey)<<endl;
+            if(leaf->getNextPage()!=-1) //has siblings already
+            {
+                rightSibling->setNextPage(leaf->getNextPage());
+            }
+            leaf->setNextPage(rightSibling->page_no());
+            rightSibling->setPrevPage(leaf->page_no());
+            if(keyCompare(key,rightKey,headerPage->keyType)<0){
+               Status st = leaf->insertRec(key,headerPage->keyType,rid,temp);
+                cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
+                if(st!=OK)
+                    cout<<"Error inserting"<<endl;
+            }
+            else{
+               Status st = rightSibling->insertRec(key,headerPage->keyType,rid,temp);
+                cout<<"Key,PageId - "<<(*(int *)key)<<","<<rightSibling->page_no()<<endl;
+                if(st!=OK)
+                    cout<<"Error inserting"<<endl;
+            }
+            MINIBASE_BM->unpinPage(rightId,true,fileName.c_str());
         }
+        return;
     }
 
 }
+
+
 
 Status BTreeFile::Delete(const void *key, const RID rid) {
   // put your code here
@@ -394,7 +395,13 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
     
 IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key) {
   // put your code here
-  return NULL;
+    BTreeFileScan *scan = new BTreeFileScan(this);
+    scan->lowVal = lo_key;
+    scan->highVal = hi_key;
+    scan->keySize = headerPage->keyLength;
+    scan->type = headerPage->keyType;
+    scan->traverseToLowValLeaf();
+     return scan;
 }
 
 int BTreeFile::keysize(){
@@ -449,11 +456,18 @@ Status BTreeFile::split_page(BTIndexPage *page, BTIndexPage *first)
         i++;
         delete(key);
     }
-    for(int i=0;i<deleted.size();i++)
-        page->deleteRecord(deleted[i]);
+    for(int i=deleted.size();i>=0;i--) {
+       Status status = page->deleteRecord(deleted[i]);
+        if(status!=OK)
+        {
+            cout<<"Error deleting"<<endl;
+        }
+    }
     return OK;
 
 }
+
+
 
 char* BTreeFile::create_key_data_record(const void *key, RID dataRId,int& recLen)
 {
@@ -515,7 +529,7 @@ Status BTreeFile::split_page(BTLeafPage *page, BTLeafPage *other) {
     }
 
     RID rid,dataRID;
-    Status status =page->get_first(rid,key,dataRID);
+    Status status = page->get_first(rid,key,dataRID);
     while(i < firstCount)
     {
         int *k;
@@ -531,14 +545,6 @@ Status BTreeFile::split_page(BTLeafPage *page, BTLeafPage *other) {
 
     while(i<secondCount)
     {
-
-
-        if(status!=OK)
-        {
-
-            break;
-
-        }
         int recLen;
         //char *rec = create_key_data_record(key,dataRID,recLen);
         RID temp;
@@ -550,10 +556,43 @@ Status BTreeFile::split_page(BTLeafPage *page, BTLeafPage *other) {
         i++;
     }
     int n = other->numberOfRecords();
-    for(int i=0;i<deleted.size();i++) {
+    for(int i=deleted.size()-1;i>=0;i--) {
         status = page->deleteRecord(deleted[i]);
         if(status!=OK)
             return status;
     }
+    n = page->numberOfRecords();
     return OK;
 }
+
+
+
+
+PageId BTreeFile::get_page_no(BTIndexPage *page,const void *key,AttrType type){
+    void *k;
+    if(type == attrInteger){
+        k=new int[1];
+    }
+    RID rid;
+    PageId pageNum;
+    Status status = page->get_first(rid,k,pageNum);
+    if(keyCompare(key,k,type)<0) {
+        return pageNum;
+    }
+    int prevCompare = 0,compare =0;
+    PageId prevPageId;
+    while(status == OK){
+        prevCompare = compare;
+        prevPageId = pageNum;
+        compare = keyCompare(key,k,type);
+        if(compare == 0){
+            return pageNum;
+        }
+        if(prevCompare*compare<0){
+            return prevPageId;
+        }
+        status = page->get_next(rid,k,pageNum);
+    }
+    return prevPageId;
+}
+

@@ -51,7 +51,7 @@ Status BTIndexPage::insertKey (const void *key,
     int *k = (int *)key;
     char *record = new char[keyDataLength];
     memcpy(record,key,sizeof(int));
-    memcpy(record+sizeof(int),(void *)pageNo,sizeof(PageId));
+    memcpy(record+sizeof(int),(void *)&pageNo,sizeof(PageId));
 
     status = SortedPage::insertRecord(key_type,record,keyDataLength,rid);
   } else
@@ -193,7 +193,7 @@ Status BTIndexPage::get_first(RID& rid,
     int i=0;
     while(currSlot->offset==-1)
     {
-        currSlot = (slot_t *)data+i*sizeof(slot_t);
+        currSlot = (slot_t *)(data+i*sizeof(slot_t));
         i++;
     }
     rid.slotNo = i;
@@ -207,16 +207,17 @@ Status BTIndexPage::get_first(RID& rid,
     int keySize = length - sizeof(PageId);
     if(keySize == sizeof(int))
     {
-        int *k = new int[1];
-        memcpy(k,data+offset,sizeof(int));
-        key = (void *)k;
+       // int *k = new int[1];
+        memcpy(key,data+offset,sizeof(int));
+     //   cout<<(*(int *)key)<<" is first key"<<endl;
+      //  key = (void *)k;
         memcpy(&pageNo,data+offset+keySize,sizeof(PageId));
     }
     else
     {
-        char *k = new char[keySize];
-        memcpy(k,data+offset,keySize);
-        key = (void *)k;
+      //  char *k = new char[keySize];
+        memcpy(key,data+offset,keySize);
+        //key = (void *)k;
         memcpy(&pageNo,data+offset+keySize,sizeof(PageId));
     }
   // put your code here
@@ -227,48 +228,34 @@ Status BTIndexPage::get_next(RID& rid, void *key, PageId & pageNo)
 {
   // put your code here
 
-  RID nextRid;
-  Status status = HFPage::nextRecord(rid,nextRid);
-  if(status!=OK)
-    return NOMORERECS;
-  int slotNo = nextRid.slotNo;
-  int length,offset;
-  if(slotNo == 0)
-  {
-      slot_t *current = this->slot;
-      length = current->length;
-      offset = current->offset;
-  }
-  else
-  {
-      int i=0;
-      slot_t *current = this->slot;
-      while(true)
-      {
-          if(i==slotNo)
-            break;
-          current = (slot_t *)data + i*sizeof(slot_t);
-        i++;
-      }
-      length = current->length;
-      offset = current->offset;
-  }
+    RID nextRid;
+    int currSlot = rid.slotNo;
+    if(currSlot+1 > this->slotCnt)
+    {
+        return NOMORERECS;
+    }
+    nextRid.pageNo = rid.pageNo;
+    nextRid.slotNo = rid.slotNo+1;
+    int nextSlot = currSlot+1;
+    slot_t *next = (slot_t *)(data+currSlot*sizeof(slot_t));
+    int offset = next->offset;
+    int length = next->length;
     char *record = new char[length];
     memcpy(record,data+offset,length);
 
     int keySize = length - sizeof(PageId);
     if(keySize == sizeof(int))
     {
-        int *k = new int[1];
-        memcpy(k,data+offset,sizeof(int));
-        key = (void *)k;
+      //  int *k = new int[1];
+        memcpy(key,data+offset,sizeof(int));
+      //  key = (void *)k;
         memcpy(&pageNo,data+offset+keySize,sizeof(PageId));
     }
     else
     {
-        char *k = new char[keySize];
-        memcpy(k,data+offset,keySize);
-        key = (void *)k;
+    //    char *k = new char[keySize];
+        memcpy(key,data+offset,keySize);
+     //   key = (void *)k;
         memcpy(&pageNo,data+offset+keySize,sizeof(PageId));
     }
     rid = nextRid;

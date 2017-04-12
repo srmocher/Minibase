@@ -215,7 +215,7 @@ Status HFPage::deleteRecord(const RID& rid)
         this->usedPtr = maxOffset;
     else
         this->usedPtr = MAX_SPACE - DPFIXED;
-    if(maxOffset==-1) {
+   if(maxOffset==-1) {
         this->slot->length = EMPTY_SLOT;
     }
     else{

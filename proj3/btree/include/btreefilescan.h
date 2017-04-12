@@ -12,6 +12,7 @@
 #include "btfile.h"
 
 // errors from this class should be defined in btfile.h
+class BTreeFile;
 
 class BTreeFileScan : public IndexFileScan {
 public:
@@ -27,7 +28,25 @@ public:
 
     // destructor
     ~BTreeFileScan();
+    BTreeFileScan(BTreeFile *f)
+    {
+        this->file=f;
+        fullIndexScan =false;
+    }
 private:
+
+
+    const void *lowVal;
+    const void *highVal;
+    int keySize;
+    AttrType type;
+    PageId  rootId;
+    BTreeFile *file;
+    void traverseToLowValLeaf();
+    bool fullIndexScan;
+    BTLeafPage *currentPage;
+    RID currentRID;
+    void *currentKey;
 
 };
 
