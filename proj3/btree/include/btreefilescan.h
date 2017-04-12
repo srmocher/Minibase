@@ -33,6 +33,8 @@ public:
         this->file=f;
         fullIndexScan =false;
         firstRecordScanned = false;
+        exactMatchSearch = false;
+        invalidRange = false;
     }
 private:
 
@@ -46,9 +48,11 @@ private:
     BTreeFile *file;
     void traverseToLowValLeaf();
     bool fullIndexScan;
+    bool exactMatchSearch;
     BTLeafPage *currentPage;
     RID currentRID,currentDataRID;
     void *currentKey;
+    bool invalidRange;
 
 };
 

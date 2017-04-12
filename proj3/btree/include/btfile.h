@@ -65,11 +65,15 @@ class BTreeFile: public IndexFile
         AttrType keyType;
         int keyLength;
         int numLevels;
+        void *minKeyVal;
+        void *maxKeyVal;
     } HeaderPage;
 
     HeaderPage *headerPage;
     PageId headerPageId;
     string fileName;
+    vector<void *> values;
+
     vector<BTLeafPage> leafPages;
     Status split_page(BTIndexPage *page,BTIndexPage *left);
     Status split_page(BTLeafPage *page,BTLeafPage *other);

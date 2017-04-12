@@ -29,8 +29,19 @@ Status BTreeFileScan::get_next(RID & rid, void* keyptr)
 {
   // put your code here
   void *key;
+    if(invalidRange){
+        return DONE;
+    }
+    if(exactMatchSearch){
+        if(keyCompare(currentKey,key,type)==0){
+            memcpy(keyptr,currentKey,sizeof(int));
+            memcpy(&rid,&currentDataRID,sizeof(RID));
+            return OK;
+        }
+        return DONE;
+    }
     if(firstRecordScanned==false){
-        cout<<"First key"<<(*(int *)currentKey)<<endl;
+     //   cout<<"First key"<<(*(int *)currentKey)<<endl;
         memcpy(keyptr,currentKey,sizeof(int));
         memcpy(&rid,&currentDataRID,sizeof(RID));
         firstRecordScanned=true;
@@ -92,6 +103,10 @@ void BTreeFileScan::traverseToLowValLeaf() {
   SortedPage *sortedPage = (SortedPage *)root;
   Page *leftMostLeafPage;
   PageId leftMostLeaf;
+  if(lowVal!=NULL && highVal!=NULL && keyCompare(lowVal,highVal,type)>0)
+  {
+      invalidRange=true;
+  }
   if(sortedPage->get_type()==INDEX)
   {
       BTIndexPage *rootPage = (BTIndexPage *)sortedPage;
@@ -125,7 +140,13 @@ void BTreeFileScan::traverseToLowValLeaf() {
     }
 
     Status  status = currentPage->get_first(currentRID,currentKey,currentDataRID);
-    cout<<"First key"<<(*(int *)currentKey)<<endl;
+   // cout<<"First key"<<(*(int *)currentKey)<<endl;
+
+    if(lowVal!=NULL && highVal!=NULL &&keyCompare(lowVal,highVal,type)==0)
+    {
+        exactMatchSearch = true;
+
+    }
   if(!fullIndexScan && lowVal!=NULL)
   {
      // void *currKey;
@@ -151,6 +172,12 @@ void BTreeFileScan::traverseToLowValLeaf() {
           {
               PageId pageId = currentPage->page_no();
               PageId nextPageId = currentPage->getNextPage();
+              if(nextPageId==-1)
+              {
+                  MINIBASE_BM->unpinPage(pageId,true,file->get_fileName().c_str());
+                  invalidRange=true;
+                  break;
+              }
               Page *pg;
               MINIBASE_BM->unpinPage(pageId,true,file->get_fileName().c_str());
               MINIBASE_BM->pinPage(nextPageId,pg,0,file->get_fileName().c_str());

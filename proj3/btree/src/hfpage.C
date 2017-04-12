@@ -219,7 +219,7 @@ Status HFPage::deleteRecord(const RID& rid)
         this->slot->length = EMPTY_SLOT;
     }
     else{
-        this->slot->length = MAX_SPACE - DPFIXED - maxOffset;
+      //  this->slot->length = MAX_SPACE - DPFIXED - maxOffset;
     }
 
     if(slot==this->slotCnt && this->slotCnt!=0)

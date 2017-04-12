@@ -78,6 +78,8 @@ BTreeFile::BTreeFile (Status& returnStatus, const char *filename,
         headerPage->keyLength = keysize;
         headerPage->pageId = -1;
         headerPage->numLevels = 0;
+        headerPage->maxKeyVal = NULL;
+        headerPage->minKeyVal = NULL;
         MINIBASE_DB->add_file_entry(fileName.c_str(),headerPageId);
         return;
     }
@@ -104,103 +106,10 @@ Status BTreeFile::destroyFile ()
   return status;
 }
 
-//Status BTreeFile::insert(const void *key, const RID rid) {
-//  // put your code here
-//
-//  PageId rootId = headerPage->pageId;
-//
-//  if(headerPage->pageId == -1) //empty tree, no records
-//  {
-//      Page *page;
-//      PageId pgId;
-//      MINIBASE_BM->newPage(pgId,page,1);
-//      headerPage->pageId = pgId;
-//      BTLeafPage *leaf = (BTLeafPage *)page;
-//
-//      RID leafID;
-//      Status status = leaf->insertRec(key,headerPage->keyType,rid,leafID);
-//      MINIBASE_BM->unpinPage(pgId,true,fileName.c_str());
-//      return status;
-//  }
-//  else
-//  {
-//      Page *rootPage;
-//      MINIBASE_BM->pinPage(headerPage->pageId,rootPage,false);
-//      if(headerPage->numLevels==0) //only root, one leaf
-//      {
-//          BTLeafPage *page = (BTLeafPage *)rootPage;
-//          int recLen;
-//          if(headerPage->keyType == attrInteger)
-//              recLen = sizeof(int) + sizeof(RID);
-//          else if(headerPage->keyType == attrString)
-//          {
-//              char *record = (char *)key;
-//              recLen = strlen(record) + sizeof(RID);
-//          }
-//          RID entryId;
-//          if(page->available_space()>recLen)
-//          {
-//             Status status =  page->insertRec(key,headerPage->keyType,rid,entryId);
-//             MINIBASE_BM->unpinPage(headerPage->pageId,true,fileName.c_str());
-//             return status;
-//          }
-//          else //split root page
-//          {
-//             ;
-//              PageId firstId,secondId;
-//              Page *p,*r;
-//              MINIBASE_BM->newPage(firstId,p,1);
-//              MINIBASE_BM->newPage(secondId,r,1);
-//              BTIndexPage *parent = (BTIndexPage *)p;
-//              BTLeafPage *right = (BTLeafPage *)r;
-//              Status status = split_page(page,parent,right,LEAF);
-//              headerPage->pageId = parent->page_no();//update root
-//              headerPage->numLevels++;
-//          }
-//      }
-//      else // root is an Index page
-//      {
-//           BTIndexPage *root = (BTIndexPage *)rootPage;
-//           RID rid;
-//           void *k;
-//          int  j =0;
-//           PageId pageNum;
-//           while(j < headerPage->numLevels)
-//           {
-//               Status status = root->get_first(rid, k, pageNum);
-//               int prevCompare = 0, compare = 0;
-//               int foundPageId = -1;
-//               while (status == OK)
-//               {
-//                   prevCompare = compare;
-//                   compare = keyCompare(k, key, headerPage->keyType);
-//                   if(compare==0)
-//                   {
-//                       foundPageId = pageNum;
-//                       break;
-//                   }
-//                    if(compare*prevCompare <0)
-//                    {
-//                        foundPageId = pageNum;
-//                        break;
-//                    }
-//
-//
-//                  status = root->get_next(rid,k,pageNum);
-//               }
-//               MINIBASE_BM->unpinPage(root->page_no(), false,fileName.c_str());
-//               Page *rt;
-//               MINIBASE_BM->pinPage(foundPageId,rt,0,this->fileName.c_str());
-//               root = (BTIndexPage *)rt;
-//               j++;
-//           }
-//      }
-//
-//  }
-//  return OK;
-//}
+
 
 Status BTreeFile::insert(const void *key, const RID rid) {
+
 
    if(headerPage->pageId ==-1)
    {
@@ -429,7 +338,7 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
         int len;
         void *currentKey;
         RID currRID,temp;
-        cout<<"Deleting "<<*((int *)key)<<endl;
+       // cout<<"Deleting "<<*((int *)key)<<endl;
         if(headerPage->keyType == attrInteger){
             currentKey = new int[1];
         }
@@ -460,7 +369,7 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
             char *currRec = create_key_data_record(currentKey,currRID,len);
 
            // cout<<"First key"<<(*(int *)currentKey)<<endl;
-            if(strcmp(currRec,rec)==0)
+            if(keyCompare(currentKey,key,headerPage->keyType)==0)
             {
                 Status deleteStatus = leaf->deleteRecord(temp);
                 MINIBASE_BM->unpinPage(leaf->page_no(),true,fileName.c_str());
