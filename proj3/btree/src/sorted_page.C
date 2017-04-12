@@ -181,7 +181,7 @@ Status SortedPage::deleteRecord (const RID& rid)
 
    // this->slotCnt--;
 
-    return OK;
+    return status;
 }
 
 int SortedPage::numberOfRecords()

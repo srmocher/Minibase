@@ -210,6 +210,13 @@ Status BTLeafPage::get_next (RID& rid,
     if(currSlotNo+1 > this->slotCnt)
         return NOMORERECS;
     slot_t *nextSlot = (slot_t*)(data + currSlotNo*sizeof(slot_t));
+    if(nextSlot->offset ==-1)
+    {
+        int temp = currSlotNo;
+        temp++;
+
+        currSlotNo = temp;
+    }
     nextRid.pageNo = rid.pageNo;
     nextRid.slotNo = currSlotNo+1;
     rid = nextRid;

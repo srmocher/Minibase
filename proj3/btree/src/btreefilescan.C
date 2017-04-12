@@ -30,6 +30,7 @@ Status BTreeFileScan::get_next(RID & rid, void* keyptr)
   // put your code here
   void *key;
     if(firstRecordScanned==false){
+        cout<<"First key"<<(*(int *)currentKey)<<endl;
         memcpy(keyptr,currentKey,sizeof(int));
         memcpy(&rid,&currentDataRID,sizeof(RID));
         firstRecordScanned=true;
@@ -124,6 +125,7 @@ void BTreeFileScan::traverseToLowValLeaf() {
     }
 
     Status  status = currentPage->get_first(currentRID,currentKey,currentDataRID);
+    cout<<"First key"<<(*(int *)currentKey)<<endl;
   if(!fullIndexScan && lowVal!=NULL)
   {
      // void *currKey;

@@ -129,7 +129,7 @@ void BTreeTest::test1() {
 
 
     // test insert()
-    num = 2000;
+    num = 100;
     
 struct dummy{
 RID r;
@@ -160,7 +160,7 @@ int key;
     cout << "\nstart BTreeIndex deletion" << endl << endl;
     int j = 0;
     for (i = 0; i < num; i++) {
-        if (i % 10 == 0) {
+        if (i % 20 == 0) {
 	    j++;
 	    if (btf->Delete(&kill[i/10].key, kill[(i/10)].r) != OK) {
 	    	cout << " Deleting record with key = " << kill[i/10].key << "  [pageNo,slotNo] = ";
