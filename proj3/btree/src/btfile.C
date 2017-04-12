@@ -78,6 +78,7 @@ BTreeFile::BTreeFile (Status& returnStatus, const char *filename,
         headerPage->keyLength = keysize;
         headerPage->pageId = -1;
         headerPage->numLevels = 0;
+        MINIBASE_DB->add_file_entry(fileName.c_str(),headerPageId);
         return;
     }
     else
@@ -232,7 +233,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
            BTIndexPage *root = (BTIndexPage *)rootPage;
            root->init(rootId);
            RID temp;
-           cout<<"New Root PageId is "<<rootId<<endl;
+           //cout<<"New Root PageId is "<<rootId<<endl;
            root->setLeftLink(headerPage->pageId);
           Status st = root->insertKey(&entry->key.intkey,headerPage->keyType,splitPageId,temp);
            headerPage->pageId = rootId;
@@ -332,7 +333,7 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
         {
             RID tempId;
             leaf->insertRec(key,headerPage->keyType,rid,tempId);
-            cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
+            //cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
             childEntry = NULL;
             MINIBASE_BM->unpinPage(leaf->page_no(),true,fileName.c_str());
             return;
@@ -369,13 +370,13 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
             rightSibling->setPrevPage(leaf->page_no());
             if(keyCompare(key,rightKey,headerPage->keyType)<0){
                Status st = leaf->insertRec(key,headerPage->keyType,rid,temp);
-                cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
+               // cout<<"Key,PageId - "<<(*(int *)key)<<","<<leaf->page_no()<<endl;
                 if(st!=OK)
                     cout<<"Error inserting"<<endl;
             }
             else{
                Status st = rightSibling->insertRec(key,headerPage->keyType,rid,temp);
-                cout<<"Key,PageId - "<<(*(int *)key)<<","<<rightSibling->page_no()<<endl;
+                //cout<<"Key,PageId - "<<(*(int *)key)<<","<<rightSibling->page_no()<<endl;
                 if(st!=OK)
                     cout<<"Error inserting"<<endl;
             }

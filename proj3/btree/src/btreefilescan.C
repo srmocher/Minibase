@@ -21,6 +21,7 @@
 BTreeFileScan::~BTreeFileScan()
 {
   // put your code here
+
 }
 
 
@@ -28,6 +29,12 @@ Status BTreeFileScan::get_next(RID & rid, void* keyptr)
 {
   // put your code here
   void *key;
+    if(firstRecordScanned==false){
+        memcpy(keyptr,currentKey,sizeof(int));
+        memcpy(&rid,&currentDataRID,sizeof(RID));
+        firstRecordScanned=true;
+        return OK;
+    }
   RID temp;
   RID tempDataRID;
   if(type == attrInteger){
@@ -112,33 +119,46 @@ void BTreeFileScan::traverseToLowValLeaf() {
   if(lowVal == NULL && highVal == NULL)
       fullIndexScan = true;
 
-  if(fullIndexScan)
-  {
-    void *currKey;
-    RID bullshit;
     if(type == attrInteger){
-      currKey = new int[1];
+        currentKey = new int[1];
     }
-      Status  status = currentPage->get_first(currentRID,currKey,bullshit);
-  }
+
+    Status  status = currentPage->get_first(currentRID,currentKey,currentDataRID);
   if(!fullIndexScan && lowVal!=NULL)
   {
-      void *currKey;
+     // void *currKey;
       if(type == attrInteger){
-        currKey = new int[1];
+        currentKey = new int[1];
       }
       RID currRID,temp;
-      Status status = currentPage->get_first(temp,currKey,currRID);
+      Status status = currentPage->get_first(temp,currentKey,currentDataRID);
 
-      while(status==OK)
+      while(true)
       {
            currentRID = temp;
-          if(keyCompare(currKey,lowVal,type)<0)
+
+          if(keyCompare(currentKey,lowVal,type)<0)
           {
-              status = currentPage->get_next(temp,currKey,currRID);
+              status = currentPage->get_next(temp,currentKey,currentDataRID);
+          }
+          else {
+              firstRecordScanned=false;
+              break;
+          }
+          if(status!=OK)
+          {
+              PageId pageId = currentPage->page_no();
+              PageId nextPageId = currentPage->getNextPage();
+              Page *pg;
+              MINIBASE_BM->unpinPage(pageId,true,file->get_fileName().c_str());
+              MINIBASE_BM->pinPage(nextPageId,pg,0,file->get_fileName().c_str());
+              currentPage = (BTLeafPage *)pg;
+              currentPage->get_first(temp,currentKey,currentDataRID);
+              //firstRecordScanned=false;
           }
       }
-      currentRID = temp;
+
+      //currentRID = temp;
   }
 }
 
