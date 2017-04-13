@@ -26,23 +26,11 @@ Status BTIndexPage::insertKey (const void *key,
   Status status;
   if(key_type == attrString){
     char *k = (char *)key;
-    int length = get_key_length(key,key_type);
-    char keyValue[MAX_KEY_SIZE1];
-
-
-    for(int i=0;i<length;i++)
-      keyValue[i]=k[i];
-
-    for(int i=length;i<MAX_KEY_SIZE1;i++)
-      keyValue[i]=' ';
-
-    int dataLength = sizeof(PageId)+MAX_KEY_SIZE1;
-    char *record = new char[dataLength];
-    for(int i=0;i<MAX_KEY_SIZE1;i++)
-      record[i]=keyValue[i];
-
-    memcpy(record+MAX_KEY_SIZE1,(void *)pageNo,sizeof(PageId));
-    status = SortedPage::insertRecord(key_type,record,dataLength,rid);
+    int length  = get_key_length(key,key_type);
+      char *record = new char[length+sizeof(PageId)];
+      memcpy(record,k,length);
+      memcpy(record+length,&pageNo,sizeof(PageId));
+    status = SortedPage::insertRecord(key_type,record,length+sizeof(PageId),rid);
 
   }
   else if(key_type == attrInteger){

@@ -191,7 +191,7 @@ int key;
 
     //MaxRangeScan
     scan = btf->new_scan(NULL, &hikey);
-    test_scan(scan);
+   test_scan(scan);
     delete scan;
 
 

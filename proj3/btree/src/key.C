@@ -60,6 +60,13 @@ void make_entry(KeyDataEntry *target,
             memcpy(&target->data.pageNo,&data.pageNo,sizeof(PageId));
             *pentry_len = sizeof(int) + sizeof(PageId);
         }
+        else
+        {
+            target = new KeyDataEntry();
+            memcpy(&target->key.charkey,key,get_key_length(key,key_type));
+            memcpy(&target->data.pageNo,&data.pageNo,sizeof(PageId));
+            *pentry_len = get_key_length(key,key_type) + sizeof(PageId);
+        }
     }
     else if(ndtype == LEAF)
     {
@@ -69,6 +76,13 @@ void make_entry(KeyDataEntry *target,
             memcpy(&target->key.intkey,key,sizeof(int));
             memcpy((&target->data.rid),&data.rid,sizeof(RID));
             *pentry_len = sizeof(int) + sizeof(RID);
+        }
+        else
+        {
+            target = new KeyDataEntry();
+            memcpy(&target->key.charkey,key,get_key_length(key,key_type));
+            memcpy((&target->data.rid),&data.rid,sizeof(RID));
+            *pentry_len = get_key_length(key,key_type) + sizeof(RID);
         }
     }
   return;
@@ -91,12 +105,22 @@ void get_key_data(void *targetkey, Datatype *targetdata,
             memcpy(targetkey,&psource->key.intkey,sizeof(int));
             memcpy(&targetdata->pageNo,&psource->data.pageNo,sizeof(PageId));
         }
+        else
+        {
+            memcpy(targetkey,&psource->key.charkey,get_key_length(&psource->key.charkey,attrString));
+            memcpy(&targetdata->pageNo,&psource->data.pageNo,sizeof(PageId));
+        }
     }
     else if(ndtype == LEAF)
     {
         if(entry_len == sizeof(int) + sizeof(PageId))
         {
             memcpy(targetkey,&psource->key.intkey,sizeof(int));
+            memcpy(&targetdata->rid,&psource->data.rid,sizeof(RID));
+        }
+        else
+        {
+            memcpy(targetkey,&psource->key.charkey,get_key_length(&psource->key.charkey,attrString));
             memcpy(&targetdata->rid,&psource->data.rid,sizeof(RID));
         }
     }
@@ -111,7 +135,7 @@ int get_key_length(const void *key, const AttrType key_type)
     if(key_type==attrString)
     {
         char *rec = (char *)key;
-        return strlen(rec)*sizeof(char);
+        return 20;
     }
     else
     {
@@ -130,9 +154,9 @@ int get_key_data_length(const void *key, const AttrType key_type,
     {
         char *str = (char *)key;
         if(ndtype == LEAF)
-            return strlen(str) + sizeof(RID);
+            return get_key_length(key,key_type) + sizeof(RID);
         else if(ndtype == INDEX)
-            return strlen(str) + sizeof(PageId);
+            return get_key_length(key,key_type) + sizeof(PageId);
     } else{
         int *num = (int *)key;
         if(ndtype == LEAF)

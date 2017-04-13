@@ -46,23 +46,11 @@ Status BTLeafPage::insertRec(const void *key,
   Status status;
   if(key_type == attrString){
     char *k = (char *)key;
-    int length = get_key_length(key,key_type);
-    char keyValue[MAX_KEY_SIZE1];
-
-
-    for(int i=0;i<length;i++)
-      keyValue[i]=k[i];
-
-    for(int i=length;i<MAX_KEY_SIZE1;i++)
-      keyValue[i]=' ';
-
-    int dataLength = sizeof(RID)+MAX_KEY_SIZE1;
-    char *record = new char[dataLength];
-    for(int i=0;i<MAX_KEY_SIZE1;i++)
-      record[i]=keyValue[i];
-
-    memcpy(record+MAX_KEY_SIZE1,&dataRid,sizeof(RID));
-    status = SortedPage::insertRecord(key_type,record,dataLength,rid);
+      int len = get_key_length(key,key_type);
+    char *record = new char[len+sizeof(RID)];
+      memcpy(record,k,len);
+      memcpy(record+len,&dataRid,sizeof(RID));
+    status = SortedPage::insertRecord(key_type,record,len+sizeof(RID),rid);
 
   }
   else if(key_type == attrInteger){
@@ -191,10 +179,10 @@ Status BTLeafPage::get_first (RID& rid,
     }
     else
     {
-        char *k = new char[keySize];
-        memcpy(k,data+offset,keySize);
-        key = (void *)k;
-        memcpy(&dataRid,data+offset+keySize,sizeof(RID));
+
+        memcpy(key,data+offset,20);
+       // key = (void *)k;
+        memcpy(&dataRid,data+offset+20,sizeof(RID));
     }  // put your code here
   return OK;
 }
@@ -235,10 +223,10 @@ Status BTLeafPage::get_next (RID& rid,
        memcpy(&dataRid,data+offset+sizeof(int),sizeof(RID));
     } else
     {
-        char *k = new char[MAX_KEY_SIZE1];
-        memcpy(k,data+offset,MAX_KEY_SIZE1);
-        key = (void *)k;
-        memcpy(&dataRid,data+offset+MAX_KEY_SIZE1,sizeof(RID));
+
+        memcpy(key,data+offset,20);
+        //key = (void *)k;
+        memcpy(&dataRid,data+offset+20,sizeof(RID));
     }
     return OK;
 }

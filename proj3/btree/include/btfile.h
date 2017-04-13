@@ -61,7 +61,15 @@ class BTreeFile: public IndexFile
     string get_fileName(){return this->fileName;}
     void* getMaxVal();
     void* getMinVal();
-  private:
+    vector<int> intValues;
+    vector<string> stringValues;
+    map<int,char *> intRecords;
+    map<char *,char *> stringRecords;
+    vector<int> getIntVals(){
+        return intValues;}
+
+
+private:
     typedef struct {
         PageId pageId;
         AttrType keyType;
@@ -74,8 +82,7 @@ class BTreeFile: public IndexFile
     HeaderPage *headerPage;
     PageId headerPageId;
     string fileName;
-    vector<int> intValues;
-    vector<string> stringValues;
+
     vector<BTLeafPage> leafPages;
     Status split_page(BTIndexPage *page,BTIndexPage *left);
     Status split_page(BTLeafPage *page,BTLeafPage *other);

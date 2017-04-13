@@ -10,6 +10,8 @@
 #define _BTREEFILESCAN_H
 
 #include "btfile.h"
+#include<vector>
+#include <map>
 
 // errors from this class should be defined in btfile.h
 class BTreeFile;
@@ -51,6 +53,13 @@ private:
     bool exactMatchSearch;
     BTLeafPage *currentPage;
     RID currentRID,currentDataRID;
+    vector<int> intKeys;
+    vector<string> stringKeys;
+    map<int,char *> intRecords;
+    map<char *,struct RID> stringRecords;
+    int high;
+    int current;
+        void initialize();
     void *currentKey;
     bool invalidRange;
 

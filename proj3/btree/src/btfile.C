@@ -114,26 +114,32 @@ Status BTreeFile::insert(const void *key, const RID rid) {
     if(headerPage->keyType == attrInteger){
         int *val = (int *)key;
         intValues.push_back(*val);
-        auto max = std::max_element(intValues.begin(),intValues.end());
-        auto min = std::min_element(intValues.begin(),intValues.end());
+        vector<int>::iterator max = std::max_element(intValues.begin(),intValues.end());
+        vector<int>::iterator  min = std::min_element(intValues.begin(),intValues.end());
         int maxVal = *max;
         int minVal = *min;
         headerPage->maxKeyVal = new int[1];
         headerPage->minKeyVal = new int[1];
         memcpy(headerPage->maxKeyVal,&maxVal,sizeof(int));
         memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
+        int len;
+        char *record = create_key_data_record(key,rid,len);
+        intRecords[*val]=record;
     }
     else
     {
         char *k = (char *)key;
         string keyVal = k;
         stringValues.push_back(keyVal);
-        auto max = std::max_element(stringValues.begin(),stringValues.end());
-        auto min = std::min_element(stringValues.begin(),stringValues.end());
+        vector<string>::iterator max = std::max_element(stringValues.begin(),stringValues.end());
+        vector<string>::iterator min = std::min_element(stringValues.begin(),stringValues.end());
         string maxVal = *max;
         string minVal = *min;
         headerPage->maxKeyVal = &maxVal;
         headerPage->minKeyVal = &minVal;
+        int len;
+        char *record = create_key_data_record(key,rid,len);
+        stringRecords[k]=record;
     }
    if(headerPage->pageId ==-1)
    {
@@ -168,7 +174,11 @@ Status BTreeFile::insert(const void *key, const RID rid) {
            RID temp;
            //cout<<"New Root PageId is "<<rootId<<endl;
            root->setLeftLink(headerPage->pageId);
-          Status st = root->insertKey(&entry->key.intkey,headerPage->keyType,splitPageId,temp);
+           Status status;
+           if(headerPage->keyType==attrInteger)
+                status = root->insertKey(&entry->key.intkey,headerPage->keyType,splitPageId,temp);
+           else
+               status = root->insertKey(entry->key.charkey,headerPage->keyType,splitPageId,temp);
            headerPage->pageId = rootId;
            MINIBASE_BM->unpinPage(rootId,true,fileName.c_str());
        }
@@ -213,6 +223,9 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
                 if(headerPage->keyType == attrInteger){
                     k = new int[1];
                 }
+                else{
+                    k = new char[MAX_KEY_SIZE1];
+                }
                 Datatype *dt = new Datatype();
                 RID temp;
                 get_key_data(k,dt,childEntry,entryLen,INDEX);
@@ -235,7 +248,10 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
                 PageId rightSmallestId;
                 rightSibling->get_first(tempRID,k,rightSmallestId);
                     childEntry = new KeyDataEntry();
+                if(headerPage->keyType == attrInteger)
                     memcpy(&(childEntry->key.intkey),k,sizeof(int));
+                else
+                    memcpy((childEntry->key.charkey),k,get_key_length(k,headerPage->keyType));
                     PageId rightPageId = rightSibling->page_no();
                     memcpy(&childEntry->data.pageNo,&rightPageId,sizeof(PageId));
                 rightSibling->deleteRecord(tempRID);
@@ -248,7 +264,10 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
                     root = (BTIndexPage *)newRoot;
                     root->init(newId);
                     RID temp;
-                    root->insertKey(&childEntry->key.intkey,headerPage->keyType,childEntry->data.pageNo,temp);
+                    if(headerPage->keyType == attrInteger)
+                      root->insertKey(&childEntry->key.intkey,headerPage->keyType,childEntry->data.pageNo,temp);
+                    else
+                        root->insertKey(&childEntry->key.charkey,headerPage->keyType,childEntry->data.pageNo,temp);
                     root->setLeftLink(page->page_no());
                     headerPage->pageId = root->page_no();
                     MINIBASE_BM->unpinPage(newId,true,fileName.c_str());
@@ -286,11 +305,16 @@ void BTreeFile::insert(PageId &pageId, const void *key, RID rid,KeyDataEntry *&c
             if(headerPage->keyType==attrInteger){
                 rightKey = new int[1];
             }
+            else{
+                rightKey = new char[MAX_KEY_SIZE1];
+            }
             RID rightRID,temp;
             splitPageId = leaf->page_no();
             rightSibling->get_first(temp,rightKey,rightRID);
-
+            if(headerPage->keyType == attrInteger)
                 memcpy(&childEntry->key.intkey, rightKey, sizeof(int));
+            else
+                memcpy(childEntry->key.charkey,rightKey,get_key_length(rightKey,headerPage->keyType));
                 PageId tempPageId = leaf->page_no();
                 memcpy(&childEntry->data.rid, &tempPageId, sizeof(RID));
             //}
@@ -328,8 +352,8 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
     if(headerPage->keyType == attrInteger){
         int *val = (int *)key;
         intValues.erase(std::remove(intValues.begin(),intValues.end(),*val),intValues.end());
-        auto max = std::max_element(intValues.begin(),intValues.end());
-        auto min = std::min_element(intValues.begin(),intValues.end());
+        vector<int>::iterator max = std::max_element(intValues.begin(),intValues.end());
+        vector<int>::iterator min = std::min_element(intValues.begin(),intValues.end());
         int maxVal = *max;
         int minVal = *min;
 
@@ -341,8 +365,8 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
         char *val = (char *)key;
         string str = val;
         stringValues.erase(std::remove(stringValues.begin(),stringValues.end(),str),stringValues.end());
-        auto max = std::max_element(stringValues.begin(),stringValues.end());
-        auto min = std::min_element(stringValues.begin(),stringValues.end());
+        vector<string>::iterator  max = std::max_element(stringValues.begin(),stringValues.end());
+        vector<string>::iterator min = std::min_element(stringValues.begin(),stringValues.end());
         string maxVal = *max;
         string minVal = *min;
         headerPage->maxKeyVal = &maxVal;
@@ -362,6 +386,9 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
         void *currKey;
         if(headerPage->keyType == attrInteger){
             currKey = new int[1];
+        }
+        else{
+            currKey = new char[MAX_KEY_SIZE1];
         }
         RID currRID,temp;
         BTLeafPage *leafPage = (BTLeafPage *)page;
@@ -438,7 +465,8 @@ IndexFileScan *BTreeFile::new_scan(const void *lo_key, const void *hi_key) {
     scan->highVal = hi_key;
     scan->keySize = headerPage->keyLength;
     scan->type = headerPage->keyType;
-    scan->traverseToLowValLeaf();
+  //  scan->initialize();
+   scan->traverseToLowValLeaf();
      return scan;
 }
 
@@ -485,6 +513,9 @@ Status BTreeFile::split_page(BTIndexPage *page, BTIndexPage *first)
             int *k = (int *)key;
             k=new int[1];
         }
+        else{
+            key = new char[MAX_KEY_SIZE1];
+        }
         Status status = page->get_next(rid,key,pageId);
         if(status!=OK)
             return status;
@@ -523,11 +554,11 @@ char* BTreeFile::create_key_data_record(const void *key, RID dataRId,int& recLen
     else
     {
         char *k = (char *)key;
-        int recordLength = strlen(k)+sizeof(RID);
+        int recordLength = get_key_length(key,headerPage->keyType)+sizeof(RID);
         recLen = recordLength;
         char *record = new char[recordLength];
-        memcpy(record,k,strlen(k));
-        memcpy(record+strlen(k),(char *)&dataRId,sizeof(RID));
+        memcpy(record,k,get_key_length(key,headerPage->keyType));
+        memcpy(record+get_key_length(key,headerPage->keyType),(char *)&dataRId,sizeof(RID));
         return record;
     }
 }
@@ -546,10 +577,11 @@ char* BTreeFile::create_key_index_record(const void *key, PageId pageNum, int &r
     else
     {
         char *k = (char *)key;
-        recLen = strlen(k) + sizeof(PageId);
+        recLen = get_key_length(key,headerPage->keyType)+ sizeof(PageId);
+        int len = get_key_length(key,headerPage->keyType);
         char *rec = new char[recLen];
-        memcpy(rec,k,strlen(k));
-        memcpy(rec+strlen(k),(char *)&pageNum,sizeof(PageId));
+        memcpy(rec,k,len);
+        memcpy(rec+len,(char *)&pageNum,sizeof(PageId));
         return rec;
     }
 }
@@ -565,6 +597,9 @@ Status BTreeFile::split_page(BTLeafPage *page, BTLeafPage *other) {
     if(headerPage->keyType == attrInteger){
         key = (void *)(new int[1]);
     }
+    else{
+        key = new char[MAX_KEY_SIZE1];
+    }
 
     RID rid,dataRID;
     Status status = page->get_first(rid,key,dataRID);
@@ -574,6 +609,9 @@ Status BTreeFile::split_page(BTLeafPage *page, BTLeafPage *other) {
         if(headerPage->keyType == attrInteger){
             k = (int *)key;
             k=new int[1];
+        }
+        else{
+            key = new char[MAX_KEY_SIZE1];
         }
 
         status = page->get_next(rid,key,dataRID);
@@ -610,6 +648,9 @@ PageId BTreeFile::get_page_no(BTIndexPage *page,const void *key,AttrType type){
     void *k;
     if(type == attrInteger){
         k=new int[1];
+    }
+    else{
+        k = new char[MAX_KEY_SIZE1];
     }
     RID rid;
     PageId pageNum;
