@@ -1,0 +1,47 @@
+
+**** Project 4: Sort-merge Join Implementation ****
+**** Writer: Young-K. Suh (yksuh@cs.arizona.edu) ****
+**** Date: 04/15/14 ****
+
+<< Files included >>
+
+./lib:
+
+libdb.a: DB library
+
+---
+
+./src:
+
+buf.C: This has empty body. You can replace this file with your buffer manager used for project 2.
+
+heapfile.C: This has empty body. You can replace this file with your heapfile.C used for project 1.
+
+hfpage.C: This has empty body. You can replace this file with your hfpage.C used for project 1.
+
+main.C, test_driver.C, SMJTester.C: the testing programs
+
+scan.C: This has empty body. You can replace this file with your scan.C used for project 1. 
+In addition, you need to implement position() and mvNext(), which were not required in project 1.
+
+sortMerge.C: source code for the sortMerge class implementation. You need to implement this.
+
+sort.o: implementation of an external sort algorithm
+
+Other .C files: Same as the ones used in the previous projects.
+
+expected_output: results of running the test driver using a correct implementation
+
+----
+
+../include:
+
+buf.h, heapfile.h, hfpage.h, scan.h: specifications for the BufMgr, HeapFile, HFPage, and Scan classes implemented in the previous projects. 
+
+SMJTester.h, test_driver.h: the header file for the SMJtester
+
+sortMerge.h: the interface of the sortMerge class.
+
+sort.h: the interface for the external sorting algorithm.
+
+Other .h files: Same as the ones used in the previous projects.
