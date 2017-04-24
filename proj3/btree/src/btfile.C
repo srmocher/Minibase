@@ -113,6 +113,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
 
     if(headerPage->keyType == attrInteger){
         int *val = (int *)key;
+        if ((std::find(intValues.begin(), intValues.end(), *val) != intValues.end()) == false){
         intValues.push_back(*val);
         vector<int>::iterator max = std::max_element(intValues.begin(),intValues.end());
         vector<int>::iterator  min = std::min_element(intValues.begin(),intValues.end());
@@ -124,7 +125,7 @@ Status BTreeFile::insert(const void *key, const RID rid) {
         memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
         int len;
         char *record = create_key_data_record(key,rid,len);
-        intRecords[*val]=record;
+        intRecords[*val]=record;}
     }
     else
     {
@@ -416,6 +417,8 @@ Status BTreeFile::Delete(const void *key, const RID rid) {
        // cout<<"Deleting "<<*((int *)key)<<endl;
         if(headerPage->keyType == attrInteger){
             currentKey = new int[1];
+        } else{
+            currentKey = new char[MAX_KEY_SIZE1];
         }
         while(currPage->getLeftLink()!=-1)
         {

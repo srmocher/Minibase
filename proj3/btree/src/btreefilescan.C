@@ -134,7 +134,7 @@ Status BTreeFileScan::delete_current()
         intKeys[current-1]=-1;
   }
     else{
-        stringKeys[current] = "";
+        stringKeys[current-1] = "";
   }
   return OK;
 }
@@ -181,11 +181,12 @@ void BTreeFileScan::traverseToLowValLeaf() {
         {
             if(type == attrInteger)
             {
+                if ((std::find(intKeys.begin(), intKeys.end(), *(int *)currentKey) != intKeys.end()) == false){
                 intKeys.push_back(*(int *)currentKey);
                 char *rec = new char[sizeof(RID)];
                // memcpy(rec,currentKey,sizeof(int));
                 memcpy(rec,&currentDataRID,sizeof(RID));
-                intRecords[*(int *)currentKey] = rec;
+                intRecords[*(int *)currentKey] = rec;}
             } else
             {
                 char * k = (char *)currentKey;
@@ -247,8 +248,13 @@ void BTreeFileScan::traverseToLowValLeaf() {
             int *k = (int *)highVal;
             for(int i=0;i<intKeys.size();i++)
             {
-                if(intKeys[i]!=-1 && intKeys[i]>=*k)break;
+                if(intKeys[i]!=-1 && intKeys[i] > *k){
+                    high = i-1;
+                    break;
+                }
+                if(intKeys[i]!=-1 && intKeys[i]==*k){
                 high = i;
+                break;}
             }
 
 
@@ -283,7 +289,7 @@ void BTreeFileScan::traverseToLowValLeaf() {
             for(int i=0;i<stringKeys.size();i++)
             {
                 current = i;
-                if(stringKeys[i]!=""&& strcmp(stringKeys[i].c_str(),k)>0) break;
+                if(stringKeys[i]!=""&& strcmp(stringKeys[i].c_str(),k)>=0) break;
 
             }
         } else{
