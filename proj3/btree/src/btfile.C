@@ -113,19 +113,23 @@ Status BTreeFile::insert(const void *key, const RID rid) {
 
     if(headerPage->keyType == attrInteger){
         int *val = (int *)key;
-        if ((std::find(intValues.begin(), intValues.end(), *val) != intValues.end()) == false){
-        intValues.push_back(*val);
-        vector<int>::iterator max = std::max_element(intValues.begin(),intValues.end());
-        vector<int>::iterator  min = std::min_element(intValues.begin(),intValues.end());
-        int maxVal = *max;
-        int minVal = *min;
-        headerPage->maxKeyVal = new int[1];
-        headerPage->minKeyVal = new int[1];
-        memcpy(headerPage->maxKeyVal,&maxVal,sizeof(int));
-        memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
-        int len;
-        char *record = create_key_data_record(key,rid,len);
-        intRecords[*val]=record;}
+
+        if ((std::find(intValues.begin(), intValues.end(), *val) != intValues.end()) == false)
+        {
+            intValues.push_back(*val);
+            vector<int>::iterator max = std::max_element(intValues.begin(),intValues.end());
+            vector<int>::iterator  min = std::min_element(intValues.begin(),intValues.end());
+            int maxVal = *max;
+            int minVal = *min;
+            headerPage->maxKeyVal = new int[1];
+            headerPage->minKeyVal = new int[1];
+            memcpy(headerPage->maxKeyVal,&maxVal,sizeof(int));
+            memcpy(headerPage->minKeyVal,&minVal,sizeof(int));
+            int len;
+            char *record = create_key_data_record(key,rid,len);
+            intRecords[*val]=record;
+        } else
+            return OK;
     }
     else
     {
