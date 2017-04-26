@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "sortMerge.h"
 
+
 // Error Protocall:
 
 
@@ -77,16 +78,42 @@ sortMerge::sortMerge(
         i++;
     }
     char *joinSecondColumn = new char[t2_str_sizes[i]];
-    while(first->getNext(firstRID,firstRecord,firstLength) == OK && second->getNext(secondRID,secondRecord,secondLength)==OK)
+    Status status1,status2;
+    status1 = first->getNext(firstRID,firstRecord,firstLength);
+    status2 = second->getNext(secondRID,secondRecord,secondLength);
+    while(status1==OK && status2 == OK)
     {
         memcpy(joinFirstColumn,firstRecord+firstOffset,t1_str_sizes[join_col_in1]);
         memcpy(joinSecondColumn,secondRecord+secondOffset,t2_str_sizes[join_col_in2]);
-        if(tupleCmp(joinFirstColumn,joinSecondColumn)==0)
+        int comp = tupleCmp(joinFirstColumn,joinSecondColumn);
+        if(comp==0)
         {
-
+            //merge both records and insert
+            char *mergedRecord = new char[firstLength + secondLength - t1_str_sizes[join_col_in1]];
+            memcpy(mergedRecord,firstRecord,firstLength);
+            memcpy(mergedRecord+firstLength,secondRecord,secondOffset);
+            int remainingLength = secondLength - t2_str_sizes[join_col_in2] - secondOffset;
+            memcpy(mergedRecord+firstLength+secondOffset,secondRecord+secondOffset+t2_str_sizes[join_col_in2],remainingLength);
+            RID outRID;
+            Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength - t1_str_sizes[join_col_in1],outRID);
+            if(insertStatus!=OK)
+            {
+                s = DONE;
+                return;
+            }
+            status1 = first->getNext(firstRID,firstRecord,firstLength);
+            status2 = second->getNext(secondRID,secondRecord,secondLength);
+        }
+        else if(comp<0)
+        {
+            status1 = first->getNext(firstRID,firstRecord,firstLength);
+        }
+        else
+        {
+            status2 = second->getNext(secondRID,secondRecord,secondLength);
         }
     }
-
+    s = OK;
 
 }
 

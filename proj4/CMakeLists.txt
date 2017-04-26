@@ -32,6 +32,6 @@ set(SOURCE_FILES
 
 include_directories(SortMerge/include)
 link_directories(SortMerge/lib)
-add_executable(proj4 ${SOURCE_FILES} SortMerge/lib)
+add_executable(proj4 ${SOURCE_FILES} SortMerge/lib SortMerge/src/sort.o)
 
 target_link_libraries(proj4 ${PROJECT_SOURCE_DIR}/SortMerge/lib/libdb.a)
