@@ -40,20 +40,18 @@ sortMerge::sortMerge(
 	// fill in the body
     Status status;
 
-    char firstName[20] = "first";
+    char firstName[20] = "";
     strcat(firstName,filename1);
+    strcat(firstName,"sorted");
     char secondName[20] = "secondFile";
-    strcat(secondName,filename2);
+    strcat(secondName,"sorted");
     Sort sortFirst(filename1,firstName,len_in1,in1,t1_str_sizes,join_col_in1,order,amt_of_mem,status);
     Sort sortSecond(filename2,secondName,len_in2,in2,t2_str_sizes,join_col_in2,order,amt_of_mem,status);
 
     firstFile = new HeapFile(firstName,status);
-
     secondFile = new HeapFile(secondName,status);
     mergedFile = new HeapFile(filename3,status);
 
-    Scan *first = firstFile->openScan(status);
-    Scan *second = secondFile->openScan(status);
     AttrType firstAttr = in1[join_col_in1];
     AttrType  secondAttr = in2[join_col_in2];
 
@@ -84,56 +82,41 @@ sortMerge::sortMerge(
     }
     char *joinSecondColumn = new char[t2_str_sizes[i]];
     Status status1,status2;
-    status1 = first->getNext(firstRID,firstRecord,firstLength);
-    status2 = second->getNext(secondRID,secondRecord,secondLength);
+
     int size;
 
     size = t1_str_sizes[join_col_in1];
 
-    while(status1==OK && status2 == OK)
+    Status st1,st2;
+    Scan *first = firstFile->openScan(st1);
+    for(st1=first->getNext(firstRID,firstRecord,firstLength);st1==OK; st1=first->getNext(firstRID,firstRecord,firstLength))
     {
-        memcpy(joinFirstColumn,firstRecord+firstOffset,t1_str_sizes[join_col_in1]);
-        memcpy(joinSecondColumn,secondRecord+secondOffset,t2_str_sizes[join_col_in2]);
-        int *num1 = (int *)(firstRecord+firstOffset);
-        int *num2 = (int *)(secondRecord + secondOffset);
-        //cout<<*num1<<","<<*num2<<endl;
-         // cout<<firstRecord<<","<<secondRecord<<endl;
-        int comp = tupleCmp(joinFirstColumn,joinSecondColumn);
-        if(comp==0)
+        Scan *second = secondFile->openScan(st2);
+        for(st2=second->getNext(secondRID,secondRecord,secondLength);st2==OK;st2=second->getNext(secondRID,secondRecord,secondLength))
         {
-            //merge both records and insert
-
-            char *mergedRecord = new char[firstLength + secondLength];
-            memcpy(mergedRecord,firstRecord,firstLength);
-            memcpy(mergedRecord+firstLength,secondRecord,secondLength);
-            string str = mergedRecord;
-
-        //    int remainingLength = secondLength - t2_str_sizes[join_col_in2] - secondOffset;
-          //  memcpy(mergedRecord+firstLength+secondOffset,secondRecord+secondOffset+t2_str_sizes[join_col_in2],remainingLength);
-         //   cout<<str<<endl;
-            RID outRID;
-
-            Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength,outRID);
-            if(insertStatus!=OK)
+             memcpy(joinFirstColumn,firstRecord+firstOffset,t1_str_sizes[join_col_in1]);
+             memcpy(joinSecondColumn,secondRecord+secondOffset,t2_str_sizes[join_col_in2]);
+            int *num1 = (int *) (firstRecord + firstOffset);
+            int *num2 = (int *) (secondRecord + secondOffset);
+            int comp = tupleCmp(joinFirstColumn,joinSecondColumn);
+            if(comp ==0)
             {
-                MINIBASE_SHOW_ERRORS();
-                s = DONE;
-                return;
+
+                char *mergedRecord = new char[firstLength + secondLength];
+                memcpy(mergedRecord,firstRecord,firstLength);
+                memcpy(mergedRecord+firstLength,secondRecord,secondLength);
+                RID outRID;
+                Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength,outRID);
+                if(insertStatus!=OK)
+                {
+                    s = DONE;
+                    return;
+                }
             }
-            status1 = first->getNext(firstRID,firstRecord,firstLength);
-            status2 = second->getNext(secondRID,secondRecord,secondLength);
-        }
-        else if(comp<0)
-        {
-
-            status1 = first->getNext(firstRID,firstRecord,firstLength);
-        }
-        else
-        {
-
-            status2 = second->getNext(secondRID,secondRecord,secondLength);
         }
     }
+    secondFile->deleteFile();
+    firstFile->deleteFile();
     s = OK;
 
 }
