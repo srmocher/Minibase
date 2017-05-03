@@ -1,4 +1,5 @@
 
+#define DEBUG
 #include <string.h>
 #include <assert.h>
 #include "sortMerge.h"
@@ -39,13 +40,16 @@ sortMerge::sortMerge(
 	// fill in the body
     Status status;
 
+    char firstName[20] = "first";
+    strcat(firstName,filename1);
+    char secondName[20] = "secondFile";
+    strcat(secondName,filename2);
+    Sort sortFirst(filename1,firstName,len_in1,in1,t1_str_sizes,join_col_in1,order,amt_of_mem,status);
+    Sort sortSecond(filename2,secondName,len_in2,in2,t2_str_sizes,join_col_in2,order,amt_of_mem,status);
 
-    Sort sortFirst(filename1,"firstFile",len_in1,in1,t1_str_sizes,join_col_in1,order,amt_of_mem,status);
-    Sort sortSecond(filename2,"secondFile",len_in2,in2,t2_str_sizes,join_col_in2,order,amt_of_mem,status);
+    firstFile = new HeapFile(firstName,status);
 
-    firstFile = new HeapFile("firstFile",status);
-
-    secondFile = new HeapFile("secondFile",status);
+    secondFile = new HeapFile(secondName,status);
     mergedFile = new HeapFile(filename3,status);
 
     Scan *first = firstFile->openScan(status);
@@ -62,7 +66,8 @@ sortMerge::sortMerge(
     RID firstRID,secondRID;
     char *firstRecord, *secondRecord;
     int firstLength,secondLength;
-
+    firstRecord = new char[100];
+    secondRecord = new char[100];
     int firstOffset = 0,secondOffset = 0;
     int i=0;
     while(i < join_col_in1)
@@ -81,23 +86,37 @@ sortMerge::sortMerge(
     Status status1,status2;
     status1 = first->getNext(firstRID,firstRecord,firstLength);
     status2 = second->getNext(secondRID,secondRecord,secondLength);
+    int size;
+
+    size = t1_str_sizes[join_col_in1];
+
     while(status1==OK && status2 == OK)
     {
         memcpy(joinFirstColumn,firstRecord+firstOffset,t1_str_sizes[join_col_in1]);
         memcpy(joinSecondColumn,secondRecord+secondOffset,t2_str_sizes[join_col_in2]);
+        int *num1 = (int *)(firstRecord+firstOffset);
+        int *num2 = (int *)(secondRecord + secondOffset);
+        //cout<<*num1<<","<<*num2<<endl;
+         // cout<<firstRecord<<","<<secondRecord<<endl;
         int comp = tupleCmp(joinFirstColumn,joinSecondColumn);
         if(comp==0)
         {
             //merge both records and insert
-            char *mergedRecord = new char[firstLength + secondLength - t1_str_sizes[join_col_in1]];
+
+            char *mergedRecord = new char[firstLength + secondLength];
             memcpy(mergedRecord,firstRecord,firstLength);
-            memcpy(mergedRecord+firstLength,secondRecord,secondOffset);
-            int remainingLength = secondLength - t2_str_sizes[join_col_in2] - secondOffset;
-            memcpy(mergedRecord+firstLength+secondOffset,secondRecord+secondOffset+t2_str_sizes[join_col_in2],remainingLength);
+            memcpy(mergedRecord+firstLength,secondRecord,secondLength);
+            string str = mergedRecord;
+
+        //    int remainingLength = secondLength - t2_str_sizes[join_col_in2] - secondOffset;
+          //  memcpy(mergedRecord+firstLength+secondOffset,secondRecord+secondOffset+t2_str_sizes[join_col_in2],remainingLength);
+         //   cout<<str<<endl;
             RID outRID;
-            Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength - t1_str_sizes[join_col_in1],outRID);
+
+            Status insertStatus = mergedFile->insertRecord(mergedRecord,firstLength+secondLength,outRID);
             if(insertStatus!=OK)
             {
+                MINIBASE_SHOW_ERRORS();
                 s = DONE;
                 return;
             }
@@ -106,10 +125,12 @@ sortMerge::sortMerge(
         }
         else if(comp<0)
         {
+
             status1 = first->getNext(firstRID,firstRecord,firstLength);
         }
         else
         {
+
             status2 = second->getNext(secondRID,secondRecord,secondLength);
         }
     }

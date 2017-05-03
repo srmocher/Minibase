@@ -69,6 +69,7 @@ void createFiles()
 		for (int j=0; j<dsize[i]; j++)
 		{
 			rec.key = data[i][j];
+            cout<<"Inserting "<<rec.key<<" in file "<<(i+1)<<endl;
 			s = f->insertRecord((char*)&rec,sizeof(rec),rid);
 			if (s != OK)
 				cout<<"this is ridiculous !"<<endl;
@@ -177,7 +178,7 @@ Status SMJTester::runTests()
 {
     Status status;
     minibase_globals = new SystemDefs( status, dbpath, logpath, 
-				  100,100,200,"LRU" );
+				  100,100,400,"LRU" );
     if ( status == OK )
         status=TestDriver::runTests();
     delete minibase_globals;

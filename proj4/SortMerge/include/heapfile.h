@@ -90,7 +90,7 @@ class HeapFile {
 
     PageId      firstDirPageId;  // page number of header page
     int         file_deleted;	 // flag for whether file is deleted (initialized to be false in constructor)
-    char       *fileName;	 // heapfile name
+    const char       *fileName;	 // heapfile name
 
     // get new data pages through buffer manager
     // (dpinfop stores the information of allocated new data pages)

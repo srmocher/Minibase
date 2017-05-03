@@ -248,8 +248,9 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
         if(descriptors[i].pageNumber == -1)
         {
 
-            MINIBASE_DB->allocate_page(firstPageId,howmany);
-
+            Status st= MINIBASE_DB->allocate_page(firstPageId,howmany);
+            if(st!=OK)
+                return st;
 
             descriptors[i].pageNumber = firstPageId;
             descriptors[i].pin_count = 1;
@@ -275,7 +276,61 @@ Status BufMgr::newPage(PageId& firstPageId, Page*& firstpage, int howmany) {
             return OK;
         }
     }
-  return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERFULL);
+
+    PageId victim = replacer->getVictim();
+    int frameIndex = hash(victim);
+    HashEntry *entry = hashTable[frameIndex];
+    while(entry)
+    {
+        if(entry->pageNumber == victim)
+            break;
+        entry = entry->next;
+    }
+
+    Status flushStatus =  flushPage(victim);
+    MINIBASE_DB->allocate_page(firstPageId,howmany);
+    descriptors[entry->frameNumber].pageNumber= firstPageId;
+    Page *page = bufPool + entry->frameNumber;
+    Status readStatus = MINIBASE_DB->read_page(firstPageId,page);
+    //  page = pg;
+    //  cout<<"Data read - "<<(char *)pg<<endl;
+    descriptors[entry->frameNumber].pin_count+=1;
+    int victimFrame = entry->frameNumber;
+
+    if(flushStatus!=OK)
+        return MINIBASE_FIRST_ERROR(BUFMGR,BUFMGRMEMORYERROR);
+//    if(entry->next==NULL)
+//    {
+//           delete(entry);
+//    } else
+//    {
+//        HashEntry *next = entry->next;
+//        delete(entry);
+//        entry = next;
+//    }
+    int newFrameIndex = hash(firstPageId);
+    HashEntry *newEntry = hashTable[newFrameIndex];
+    if(newEntry==NULL)
+    {
+        newEntry = new HashEntry();
+        newEntry->next = NULL;
+        newEntry->frameNumber =  victimFrame;
+        newEntry->pageNumber = firstPageId;
+    }
+    else
+    {
+        while(newEntry->next)
+            newEntry= newEntry->next;
+        newEntry->next = new HashEntry();
+        newEntry->next->next = NULL;
+        newEntry->next->pageNumber = firstPageId;
+        newEntry->next->frameNumber = victimFrame;
+    }
+
+
+    //no frame available choose a replacement
+    return OK;
+ // return MINIBASE_FIRST_ERROR(BUFMGR,BUFFERFULL);
 }
 
 //*************************************************************

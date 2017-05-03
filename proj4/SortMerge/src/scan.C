@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 
 #include "heapfile.h"
 #include "scan.h"
@@ -12,7 +13,7 @@
 #include "buf.h"
 #include "db.h"
 
-extern vector<HFPage*> directoryPages;
+extern map<string,vector<HFPage*>> directoryPages;
 static const int namelen = 24;
 struct Rec
 {
@@ -86,8 +87,8 @@ Status Scan::init(HeapFile *hf)
 {
   // put your code here
   this->_hf = hf;
-  firstDataPage();
-  return OK;
+ Status  status = firstDataPage();
+  return status;
 }
 
 // *******************************************
@@ -102,7 +103,11 @@ Status Scan::reset()
 // Copy data about first page in the file.
 Status Scan::firstDataPage()
 {
-    this->dirPage = directoryPages[0];
+    if(directoryPages[_hf->fileName].size()==0) {
+        this->scanIsDone = 1;
+        return DONE;
+    }
+    this->dirPage = directoryPages[_hf->fileName][0];
     Page *page = (Page *)this->dirPage;
     Status pinStatus = MINIBASE_BM->pinPage(dirPage->page_no(),page,0,_hf->fileName);
     if(pinStatus!=OK)
@@ -164,15 +169,15 @@ Status Scan::nextDataPage(){
 Status Scan::nextDirPage() {
     int currId = this->dirPageId;
     int index;
-    for(int i=0;i<directoryPages.size();i++)
+    for(int i=0;i<directoryPages[_hf->fileName].size();i++)
     {
-        HFPage *pg = directoryPages[i];
+        HFPage *pg = directoryPages[_hf->fileName][i];
         if(pg->page_no()==currId) {
             index = i;
             break;
         }
     }
-    if(index==directoryPages.size()-1)
+    if(index==directoryPages[_hf->fileName].size()-1)
         return DONE;
     Status pinStatus = MINIBASE_BM->unpinPage(currId,0,_hf->fileName);
     if(pinStatus!=OK)
@@ -181,13 +186,13 @@ Status Scan::nextDirPage() {
     if(pinStatus!=OK)
         return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
     index++;
-    this->dirPageId = directoryPages[index]->page_no();
-    this->dirPage = directoryPages[index];
-    Page *pg = (Page *)directoryPages[index];
+    this->dirPageId = directoryPages[_hf->fileName][index]->page_no();
+    this->dirPage = directoryPages[_hf->fileName][index];
+    Page *pg = (Page *)directoryPages[_hf->fileName][index];
     pinStatus = MINIBASE_BM->pinPage(this->dirPageId,pg,0,_hf->fileName);
     if(pinStatus!=OK)
         return MINIBASE_CHAIN_ERROR(BUFMGR,pinStatus);
-    HFPage *dirPage = directoryPages[index];
+    HFPage *dirPage = directoryPages[_hf->fileName][index];
     dirPage->firstRecord(this->dataPageRid);
     char *record;
     int recLen;
