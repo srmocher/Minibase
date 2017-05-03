@@ -47,7 +47,7 @@ class sortMerge
 
 private:
 	// Error handling protocal:
-
+	HeapFile *firstFile,*secondFile,*mergedFile;
 	enum ErrCodes 	{
 			SORT_FAILED,
 			HEAPFILE_FAILED
