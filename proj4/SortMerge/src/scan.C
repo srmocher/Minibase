@@ -27,6 +27,7 @@ extern string FileName;
 // and initializes its private data members from the private data members from hf
 Scan::Scan (HeapFile *hf, Status& status)
 {
+    this->dirPageId = -1;
   // put your code here
   init(hf);
   status = OK;
@@ -50,6 +51,8 @@ Status Scan::getNext(RID& rid, char *recPtr, int& recLen)
     RID curr;
     char *record;
     if(this->scanIsDone==1) {
+        if(this->dirPageId == -1)
+            return DONE;
         MINIBASE_BM->unpinPage(this->dirPageId,0,_hf->fileName);
         MINIBASE_BM->unpinPage(this->dataPageId,0,_hf->fileName);
 

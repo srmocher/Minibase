@@ -134,7 +134,6 @@ int SMJTester::test1()
     createFiles();
     for (int i=1; i<=7; i++) {
     	status=test(i);
-	minibase_errors.show_errors();
     	if (status!=OK) {
     		cout<<"Test "<<i<<" Failed.\n"<<endl;
     		break;
