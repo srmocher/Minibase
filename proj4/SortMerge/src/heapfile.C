@@ -25,7 +25,7 @@ typedef struct{
 
 vector<directory> dirs;    //list of all directories for all files
 
-map<string,vector<HFPage*>> directoryPages;   //holds the Directory pages for currently open file
+map<string,vector<HFPage*> > directoryPages;   //holds the Directory pages for currently open file
 string FileName;
 static error_string_table hfTable( HEAPFILE, hfErrMsgs );
 

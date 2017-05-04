@@ -69,7 +69,6 @@ void createFiles()
 		for (int j=0; j<dsize[i]; j++)
 		{
 			rec.key = data[i][j];
-            cout<<"Inserting "<<rec.key<<" in file "<<(i+1)<<endl;
 			s = f->insertRecord((char*)&rec,sizeof(rec),rid);
 			if (s != OK)
 				cout<<"this is ridiculous !"<<endl;
